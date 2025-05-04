@@ -43,7 +43,7 @@ namespace cli::core
 
 	bool contains(std::string_view option_name) const noexcept
 	{
-	    if (auto iterator = find(option_name); iterator != options.cend())
+	    if (find_option(option_name) != options.cend())
 	    {
 		return true;
 	    }
@@ -53,7 +53,9 @@ namespace cli::core
 
 	const option& operator[](std::string_view option_name) const
 	{
-	    if (auto iterator = find(option_name); iterator != options.cend())
+	    auto iterator = find_option(option_name);
+
+	    if (iterator != options.cend())
 	    {
 		return *iterator;
 	    }
@@ -63,12 +65,12 @@ namespace cli::core
 
 	option& operator[](std::string_view option_name)
 	{
-	    using const_this = option_book*;
+	    using const_this = const option_book*;
 
-	    auto&& reference =
+	    auto&& const_reference =
 		const_cast<const_this>(this)->operator[](option_name);
 
-	    return const_cast<option&>(reference);
+	    return const_cast<option&>(const_reference);
 	}
 
 	bool operator==(const option_book& other) const noexcept
@@ -84,7 +86,7 @@ namespace cli::core
     private:
 
 	std::vector<option>::const_iterator
-	find(std::string_view option_name) const noexcept
+	find_option(std::string_view option_name) const noexcept
 	{
 	    return std::find(options.cbegin(), options.cend(), option_name);
 	}
