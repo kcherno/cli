@@ -71,6 +71,16 @@ namespace cli::core
 	    return const_cast<option&>(reference);
 	}
 
+	bool operator==(const option_book& other) const noexcept
+	{
+	    return options == other.options;
+	}
+
+	bool operator!=(const option_book& other) const noexcept
+	{
+	    return options != other.options;
+	}
+
     private:
 
 	std::vector<option>::const_iterator
