@@ -19,18 +19,11 @@ BOOST_AUTO_TEST_CASE(check_existing_option)
 
     BOOST_TEST(option_book.contains("-h"));
     BOOST_TEST(option_book.contains("--help"));
-
-    BOOST_CHECK_NO_THROW(option_book["-h"]);
-    BOOST_CHECK_NO_THROW(option_book["--help"]);
 }
 
 BOOST_AUTO_TEST_CASE(check_non_existent_option)
 {
-    const option_book option_book;
-
-    BOOST_CHECK_EQUAL(option_book.contains("-h"), false);
-
-    BOOST_CHECK_THROW(option_book["-h"], std::out_of_range);
+    BOOST_CHECK_EQUAL(option_book().contains("-h"), false);
 }
 
 BOOST_AUTO_TEST_CASE(check_existing_option_using_custom_validator)
@@ -68,6 +61,24 @@ BOOST_AUTO_TEST_CASE(check_existing_option_using_custom_validator)
     BOOST_TEST(option_book.contains("-v"));
     BOOST_TEST(option_book.contains("--verbose"));
     BOOST_TEST(option_book.contains("--no-verbose"));
+}
+
+BOOST_AUTO_TEST_SUITE_END();
+
+BOOST_AUTO_TEST_SUITE(bracket_operator);
+
+BOOST_AUTO_TEST_CASE(access_to_existing_option)
+{
+    const option_book option_book {
+	option {"-h", "--help"}
+    };
+
+    BOOST_CHECK_NO_THROW(option_book["-h"]);
+}
+
+BOOST_AUTO_TEST_CASE(access_to_non_existent_option)
+{
+    BOOST_CHECK_THROW(option_book()["-h"], std::out_of_range);
 }
 
 BOOST_AUTO_TEST_SUITE_END();
