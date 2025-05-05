@@ -222,7 +222,8 @@ namespace cli::core
 	equality_validator_type equality_validator_;
     };
 
-    bool operator==(const option& option, std::string_view option_name) noexcept
+    inline bool
+    operator==(const option& option, std::string_view option_name) noexcept
     {
 	if (option.has_equality_validator())
 	{
@@ -233,17 +234,20 @@ namespace cli::core
 		option.long_name()  == option_name);
     }
 
-    bool operator==(std::string_view option_name, const option& option) noexcept
+    inline bool
+    operator==(std::string_view option_name, const option& option) noexcept
     {
 	return option == option_name;
     }
 
-    bool operator!=(const option& option, std::string_view option_name) noexcept
+    inline bool
+    operator!=(const option& option, std::string_view option_name) noexcept
     {
 	return (not (option == option_name));
     }
 
-    bool operator!=(std::string_view option_name, const option& option) noexcept
+    inline bool
+    operator!=(std::string_view option_name, const option& option) noexcept
     {
 	return option != option_name;
     }
