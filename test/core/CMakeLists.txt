@@ -1,9 +1,12 @@
 set(TEST_SOURCE_FILES
-    option_book.cpp
     option.cpp
+    option_book.cpp
+    option_map.cpp
     parser.cpp)
 
-set(SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/core/parser.cpp)
+set(SOURCE_FILES
+    ${CMAKE_SOURCE_DIR}/src/core/option_map.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/parser.cpp)
 
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
