@@ -181,25 +181,32 @@ namespace cli::core
 	static constexpr bool
 	is_short_option_name(std::string_view option_name) noexcept
 	{
-	    return (option_name.size() == 2 &&
-		    option_name[0] == '-'   &&
-		    option_name[1] != '-');
+	    return option_name.size() == 2 && option_name.starts_with('-');
 	}
 
 	static constexpr bool
 	is_long_option_name(std::string_view option_name) noexcept
 	{
-	    return (option_name.size() > 2 &&
-		    option_name[0] == '-'  &&
-		    option_name[1] == '-'  &&
-		    option_name[2] != '-');
+	    return option_name.size() > 2 && option_name.starts_with("--");
+	}
+
+	static constexpr bool
+	is_long_option_name_with_argument(std::string_view option_name) noexcept
+	{
+	    if (is_long_option_name(option_name))
+	    {
+		return option_name.find('=') != std::string_view::npos;
+	    }
+
+	    return false;
 	}
 
 	static constexpr bool
 	is_option_name(std::string_view option_name) noexcept
 	{
 	    return (is_short_option_name(option_name) ||
-		    is_long_option_name(option_name));
+		    is_long_option_name(option_name)  ||
+		    is_long_option_name_with_argument(option_name));
 	}
 
     private:
