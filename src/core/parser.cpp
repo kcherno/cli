@@ -1,77 +1,66 @@
 #include <string_view>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
+#include "core/option.hpp"
 #include "core/parser.hpp"
-
-#include "error/long_option_starts_with_hyphen.hpp"
-#include "error/long_option_with_one_hyphen.hpp"
-#include "error/short_option_empty.hpp"
-#include "error/long_option_empty.hpp"
 
 using namespace cli::core;
 
-std::vector<std::string_view>
-parser::parse_command_line_options(int argc, const char** argv) const
+void parser::parse_command_line(int argc, const char** argv)
 {
-    std::vector<std::string_view> options;
+    options_.clear();
+
+    positional_options_.clear();
 
     for (int i = 1; i < argc && argv[i]; ++i)
     {
-	auto option = std::string_view {argv[i]};
+	std::string_view option_name = argv[i];
 
-	if (not option.empty() && option[0] == '-')
+	if (option::is_option_name(option_name))
 	{
-	    switch (option.size())
+	    add_option(option_name);
+
+	    if (option::is_long_option_name_with_argument(option_name))
 	    {
-	    case 1:
-
-		throw error::short_option_empty {__func__};
-
-	    case 2:
-
-		if (option[1] == '-')
-		{
-		    throw error::long_option_empty {__func__};
-		}
-
-		break;
-
-	    default:
-
-		if (option[1] != '-')
-		{
-		    throw error::long_option_with_one_hyphen {__func__};
-		}
-
-		if (option[2] == '-')
-		{
-		    throw error::long_option_starts_with_hyphen {__func__};
-		}
+		continue;
 	    }
 
-	    options.emplace_back(option);
-	}
-    }
+	    if (get_option_from_book(option_name).has_arguments())
+	    {
+		if (i + 1 < argc && not option::is_option_name(argv[i + 1]))
+		{
+		    add_option_argument(option_name, argv[i + 1]);
+		}
 
-    return options;
-}
+		else
+		{
+		    throw std::logic_error {
+			std::string(__func__)
+			    .append(": ")
+			    .append(option_name)
+			    .append(" expects argument")
+		    };
+		}
 
-std::vector<std::string_view>
-parser::parse_positional_options(int argc, const char** argv) const
-{
-    std::vector<std::string_view> options;
+		++i;
+	    }
 
-    for (int i = 1; i < argc && argv[i]; ++i)
-    {
-	const auto option = std::string_view {argv[i]};
-
-	if (option.empty() || option[0] == '-')
-	{
 	    continue;
 	}
 
-	options.emplace_back(option);
-    }
+	if (option::is_short_option_name(argv[i - 1]) ||
+	    option::is_long_option_name(argv[i - 1]))
+	{
+	    if (get_option_from_book(argv[i - 1]).has_arguments())
+	    {
+		add_option_argument(argv[i - 1], argv[i]);
 
-    return options;
+		continue;
+	    }
+	}
+
+	positional_options_.emplace_back(argv[i]);
+    }
 }
