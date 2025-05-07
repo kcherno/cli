@@ -15,6 +15,8 @@ namespace cli::core
     {
     public:
 
+	// TODO(#2): make option_book satisfy container name requirements
+
 	option_book() = default;
 
 	option_book(std::initializer_list<option> ilist) :

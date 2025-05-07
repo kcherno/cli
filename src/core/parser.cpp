@@ -72,4 +72,6 @@ void parser::parse_command_line(int argc, const char** argv)
 
 	positional_options_.emplace_back(argv[i]);
     }
+
+    // TODO(#1): add check for required options
 }
