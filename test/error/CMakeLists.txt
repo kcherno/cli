@@ -1,5 +1,6 @@
 set(TEST_SOURCE_FILES
     option_already_added_as.cpp
+    option_expects_argument.cpp
     unrecognized_option.cpp)
 
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
