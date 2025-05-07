@@ -3,14 +3,18 @@
 #include <initializer_list>
 #include <string_view>
 #include <algorithm>
-#include <stdexcept>
 #include <optional>
 #include <utility>
 #include <string>
 #include <vector>
 
+#include "configuration/exception_source_information.hpp"
+
 #include "core/option_book.hpp"
 #include "core/option.hpp"
+
+#include "error/option_already_added_as.hpp"
+#include "error/unrecognized_option.hpp"
 
 namespace cli::core
 {
@@ -131,12 +135,10 @@ namespace cli::core
 		{
 		    if (auto optional = contains(option); optional)
 		    {
-			throw std::logic_error {
-			    std::string(__func__)
-				.append(": ")
-				.append(option)
-				.append(" already added as ")
-				.append(optional.value())
+			throw error::option_already_added_as {
+			    option,
+			    optional.value(),
+			    EXCEPTION_SOURCE_INFORMATION
 			};
 		    }
 		}
@@ -146,30 +148,9 @@ namespace cli::core
 
 	    else
 	    {
-		throw std::logic_error {
-		    std::string(__func__)
-			.append(": ")
-			.append(option_name)
-			.append(" unrecognized option")
-                };
-	    }
-	}
-
-	void add_option_argument(std::string_view option_name,
-				 std::string_view option_argument)
-	{
-	    if (get_option_from_book(option_name).has_arguments())
-	    {
-		options_.emplace_back(option_argument);
-	    }
-
-	    else
-	    {
-		throw std::logic_error {
-		    std::string(__func__)
-			.append(": ")
-			.append(option_name)
-			.append(" does not take arguments")
+		throw error::unrecognized_option {
+		    option,
+		    EXCEPTION_SOURCE_INFORMATION
 		};
 	    }
 	}

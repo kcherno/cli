@@ -1,12 +1,14 @@
 #define BOOST_TEST_MODULE parser
 
-#include <stdexcept>
-
 #include <boost/test/unit_test.hpp>
 
 #include "core/option_book.hpp"
 #include "core/option.hpp"
 #include "core/parser.hpp"
+
+#include "error/option_already_added_as.hpp"
+#include "error/option_expects_argument.hpp"
+#include "error/unrecognized_option.hpp"
 
 using namespace cli::core;
 
@@ -136,7 +138,7 @@ BOOST_AUTO_TEST_CASE(parse_empty_command_line)
 
     parser parser;
 
-    parser.parse_command_line(std::size(argv), argv);
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv), argv));
 
     BOOST_TEST(parser.options().empty());
     BOOST_TEST(parser.positional_options().empty());
@@ -152,7 +154,7 @@ BOOST_AUTO_TEST_CASE(parse_unrecognized_option)
 
     BOOST_CHECK_THROW(
         parser().parse_command_line(std::size(argv), argv),
-	std::logic_error
+	cli::error::unrecognized_option
     );
 }
 
@@ -173,12 +175,66 @@ BOOST_AUTO_TEST_CASE(parse_valid_short_option)
 	nullptr
     };
 
-    parser.parse_command_line(std::size(argv), argv);
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv), argv));
 
-    BOOST_TEST(not parser.options().empty());
+    BOOST_REQUIRE_EQUAL(parser.options().size(), 1);
 
-    BOOST_CHECK_EQUAL(parser.options().size(), 1);
-    BOOST_CHECK_EQUAL(parser.options()[0],     "-h");
+    BOOST_CHECK_EQUAL(parser.options()[0], "-h");
+}
+
+BOOST_AUTO_TEST_CASE(parse_valid_short_option_with_argument)
+{
+    parser parser {
+	option_book {
+	    option {
+		"-f",
+		{},
+		{},
+		{},
+		option::required::not_required,
+		option::arguments::has_arguments
+	    }
+	}
+    };
+
+    const char* argv[] = {
+	"",
+	"-f",
+	"a.txt",
+	nullptr
+    };
+
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv), argv));
+
+    BOOST_REQUIRE_EQUAL(parser.options().size(), 2);
+
+    BOOST_CHECK_EQUAL(parser.options()[0], "-f");
+    BOOST_CHECK_EQUAL(parser.options()[1], "a.txt");
+}
+
+BOOST_AUTO_TEST_CASE(parse_valid_short_option_with_missing_argument)
+{
+    parser parser {
+	option_book {
+	    option {
+		"-f",
+		{},
+		{},
+		{},
+		option::required::not_required,
+		option::arguments::has_arguments
+	    }
+	}
+    };
+
+    const char* argv[] = {
+	"",
+	"-f",
+	nullptr
+    };
+
+    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv), argv),
+		      cli::error::option_expects_argument);
 }
 
 BOOST_AUTO_TEST_CASE(parse_valid_long_option)
@@ -221,19 +277,65 @@ BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_argument)
 	}
     };
 
-    const char* argv[] = {
+    const char* argv1[] = {
+	"",
+	"--file",
+	"a.txt",
+	nullptr
+    };
+
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv1), argv1));
+
+    BOOST_REQUIRE_EQUAL(parser.options().size(), 2);
+
+    BOOST_CHECK_EQUAL(parser.options()[0], "--file");
+    BOOST_CHECK_EQUAL(parser.options()[1], "a.txt");
+
+    const char* argv2[] = {
 	"",
 	"--file=a.txt",
 	nullptr
     };
 
-    parser.parse_command_line(std::size(argv), argv);
-
-    BOOST_TEST(not parser.options().empty());
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv2), argv2));
 
     BOOST_REQUIRE_EQUAL(parser.options().size(), 1);
 
     BOOST_CHECK_EQUAL(parser.options()[0], "--file=a.txt");
+}
+
+BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_missing_argument)
+{
+    parser parser {
+	option_book {
+	    option {
+		{},
+		"--file",
+		{},
+		{},
+		option::required::not_required,
+		option::arguments::has_arguments
+	    }
+	}
+    };
+
+    const char* argv[] = {
+	"",
+	"--file",
+	nullptr
+    };
+
+    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv), argv),
+		      cli::error::option_expects_argument);
+
+    const char* argv2[] = {
+	"",
+	"--file=",
+	nullptr
+    };
+
+    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv2), argv2),
+		      cli::error::option_expects_argument);
 }
 
 BOOST_AUTO_TEST_CASE(parse_multiple_options_with_arguments)
@@ -266,7 +368,7 @@ BOOST_AUTO_TEST_CASE(parse_multiple_options_with_arguments)
 	nullptr
     };
 
-    parser.parse_command_line(std::size(argv), argv);
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv), argv));
 
     BOOST_REQUIRE_EQUAL(parser.options().size(), 10);
 
@@ -385,7 +487,7 @@ BOOST_AUTO_TEST_CASE(parse_already_added_option_without_argument)
 
     BOOST_CHECK_THROW(
         parser.parse_command_line(std::size(argv), argv),
-	std::logic_error
+	cli::error::option_already_added_as
     );
 }
 
