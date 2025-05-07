@@ -7,11 +7,11 @@
 
 #define EXCEPTION_SOURCE_INFORMATION \
     std::string(std::source_location::current().file_name()) \
-	.append(" ") \
+	.append(":") \
 	.append(std::source_location::current().function_name()) \
-	.append(" ") \
+	.append(":") \
 	.append(std::to_string(std::source_location::current().line())) \
-	.append(" ") \
+	.append(":") \
 	.append(std::to_string(std::source_location::current().column()))
 
 #else
