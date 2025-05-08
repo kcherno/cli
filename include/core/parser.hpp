@@ -7,13 +7,8 @@
 #include <utility>
 #include <vector>
 
-#include "configuration/exception_source_information.hpp"
-
 #include "core/option_book.hpp"
 #include "core/option.hpp"
-
-#include "error/option_already_added_as.hpp"
-#include "error/unrecognized_option.hpp"
 
 namespace cli::core
 {
@@ -141,35 +136,7 @@ namespace cli::core
 
     private:
 
-	void add_option(std::string_view option_name)
-	{
-	    auto option = option_name.substr(0, option_name.find('='));
-
-	    if (book_contains(option))
-	    {
-		if (not get_option_from_book(option).has_arguments())
-		{
-		    if (auto optional = contains(option); optional)
-		    {
-			throw error::option_already_added_as {
-			    option,
-			    optional.value(),
-			    EXCEPTION_SOURCE_INFORMATION
-			};
-		    }
-		}
-
-		options_.emplace_back(option_name);
-	    }
-
-	    else
-	    {
-		throw error::unrecognized_option {
-		    option,
-		    EXCEPTION_SOURCE_INFORMATION
-		};
-	    }
-	}
+	void add_option(std::string_view);
 
 	bool book_contains(std::string_view option_name) const noexcept
 	{
@@ -186,24 +153,7 @@ namespace cli::core
 	}
 
 	std::vector<std::string_view>::const_iterator
-	find_option_with_validation(std::string_view option_name) const noexcept
-	{
-	    auto iterator = find_option_in_book(option_name);
-
-	    if (iterator != books.cend())
-	    {
-		auto& option = iterator->operator[](option_name);
-
-		return std::find_if(options_.cbegin(),
-				    options_.cend(),
-				    [&](auto&& op)
-				    {
-					return option == op;
-				    });
-	    }
-
-	    return options_.cend();
-	}
+	find_option_with_validation(std::string_view) const noexcept;
 
 	const option&
 	get_option_from_book(std::string_view option_name) const noexcept
