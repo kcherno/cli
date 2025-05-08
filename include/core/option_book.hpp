@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "configuration/exception_source_information.hpp"
+
 #include "option.hpp"
 
 namespace cli::core
@@ -15,12 +17,20 @@ namespace cli::core
     {
     public:
 
-	// TODO(#2): make option_book satisfy container name requirements
+	using container = std::vector<option>;
+
+	using value_type      = container::value_type;
+	using reference       = container::reference;
+	using const_reference = container::const_reference;
+	using iterator        = container::iterator;
+	using const_iterator  = container::const_iterator;
+	using difference_type = container::difference_type;
+	using size_type       = container::size_type;
 
 	option_book() = default;
 
-	option_book(std::initializer_list<option> ilist) :
-	    options {ilist}
+	option_book(std::initializer_list<option> initializer_list) :
+	    container_ {initializer_list}
 	{}
 
 	option_book(const option_book&) = default;
@@ -37,62 +47,142 @@ namespace cli::core
 	{
 	    if (this != &other)
 	    {
-		std::swap(options, other.options);
+		swap(other);
 	    }
 
 	    return *this;
 	}
 
-	bool contains(std::string_view option_name) const noexcept
+	const_iterator cbegin() const noexcept
 	{
-	    if (find_option(option_name) != options.cend())
-	    {
-		return true;
-	    }
-
-	    return false;
+	    return container_.cbegin();
 	}
 
-	const option& operator[](std::string_view option_name) const
+	const_iterator begin() const noexcept
 	{
-	    auto iterator = find_option(option_name);
+	    return container_.begin();
+	}
 
-	    if (iterator != options.cend())
+	iterator begin() noexcept
+	{
+	    return container_.begin();
+	}
+
+	bool contains(const_reference option) const noexcept
+	{
+	    return find_option(option) != container_.cend();
+	}
+
+	bool contains(std::string_view option_name) const noexcept
+	{
+	    return find_option(option_name) != container_.cend();
+	}
+
+	bool empty() const noexcept
+	{
+	    return container_.empty();
+	}
+
+	const_iterator cend() const noexcept
+	{
+	    return container_.cend();
+	}
+
+	const_iterator end() const noexcept
+	{
+	    return container_.end();
+	}
+
+	iterator end() noexcept
+	{
+	    return container_.end();
+	}
+
+	size_type max_size() const noexcept
+	{
+	    return container_.max_size();
+	}
+
+	size_type size() const noexcept
+	{
+	    return container_.size();
+	}
+
+	void swap(option_book& other) noexcept
+	{
+	    container_.swap(other.container_);
+	}
+
+	const_reference operator[](const_reference option) const
+	{
+	    auto iterator = find_option(option);
+
+	    if (iterator != container_.cend())
 	    {
 		return *iterator;
 	    }
 
-	    throw std::out_of_range {__func__};
+	    throw std::out_of_range {EXCEPTION_SOURCE_INFORMATION};
 	}
 
-	option& operator[](std::string_view option_name)
+	reference operator[](const_reference option)
+	{
+	    using const_this = const option_book*;
+
+	    auto&& const_reference =
+		const_cast<const_this>(this)->operator[](option);
+
+	    return const_cast<reference>(const_reference);
+	}
+
+	const_reference operator[](std::string_view option_name) const
+	{
+	    auto iterator = find_option(option_name);
+
+	    if (iterator != container_.cend())
+	    {
+		return *iterator;
+	    }
+
+	    throw std::out_of_range {EXCEPTION_SOURCE_INFORMATION};
+	}
+
+	reference operator[](std::string_view option_name)
 	{
 	    using const_this = const option_book*;
 
 	    auto&& const_reference =
 		const_cast<const_this>(this)->operator[](option_name);
 
-	    return const_cast<option&>(const_reference);
-	}
-
-	bool operator==(const option_book& other) const noexcept
-	{
-	    return options == other.options;
-	}
-
-	bool operator!=(const option_book& other) const noexcept
-	{
-	    return options != other.options;
+	    return const_cast<reference>(const_reference);
 	}
 
     private:
 
-	std::vector<option>::const_iterator
-	find_option(std::string_view option_name) const noexcept
+	const_iterator find_option(const_reference option) const noexcept
 	{
-	    return std::find(options.cbegin(), options.cend(), option_name);
+	    return std::find(container_.cbegin(), container_.cend(), option);
 	}
 
-	std::vector<option> options;
+	const_iterator find_option(std::string_view option_name) const noexcept
+	{
+	    return std::find(container_.cbegin(),
+			     container_.cend(),
+			     option_name);
+	}
+
+        container container_;
     };
+
+    inline bool operator==(const option_book& lhs,
+			   const option_book& rhs) noexcept
+    {
+	return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend());
+    }
+
+    inline bool operator!=(const option_book& lhs,
+			   const option_book& rhs) noexcept
+    {
+	return (not (lhs == rhs));
+    }
 }
