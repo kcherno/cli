@@ -5,6 +5,7 @@
 #include "core/option.hpp"
 #include "core/parser.hpp"
 
+#include "error/option_is_required_but_not_added.hpp"
 #include "error/option_expects_argument.hpp"
 
 using namespace cli::core;
@@ -73,5 +74,19 @@ void parser::parse_command_line(int argc, const char** argv)
 	positional_options_.emplace_back(argv[i]);
     }
 
-    // TODO(#1): add check for required options
+    for (auto&& book : books)
+    {
+	for (auto&& option : book)
+	{
+	    if (option.is_required() && not contains(option))
+	    {
+		throw error::option_is_required_but_not_added {
+		    option.short_name().empty() ?
+			option.long_name() :
+			option.short_name(),
+		    EXCEPTION_SOURCE_INFORMATION
+		};
+	    }
+	}
+    }
 }

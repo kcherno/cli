@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <optional>
 #include <utility>
-#include <string>
 #include <vector>
 
 #include "configuration/exception_source_information.hpp"
@@ -34,7 +33,11 @@ namespace cli::core
 
 	parser(const parser&) = default;
 
-	parser(parser&& other);
+	parser(parser&& other) noexcept :
+	    parser {}
+	{
+	    this->operator=(std::move(other));
+	}
 
 	parser& operator=(const parser&) = default;
 
@@ -42,8 +45,7 @@ namespace cli::core
 	{
 	    if (this != &other)
 	    {
-		std::swap(books, other.books);
-
+		std::swap(books,               other.books);
 		std::swap(options_,            other.options_);
 		std::swap(positional_options_, other.positional_options_);
 	    }
@@ -70,6 +72,20 @@ namespace cli::core
 	void clear() noexcept
 	{
 	    books.clear();
+	}
+
+	std::optional<std::string_view>
+	contains(const option& option) const noexcept
+	{
+	    auto iterator =
+		std::find(options_.cbegin(), options_.cend(), option);
+
+	    if (iterator != options_.cend())
+	    {
+		return *iterator;
+	    }
+
+	    return {};
 	}
 
 	bool contains(const option_book& option_book) const noexcept
@@ -106,16 +122,16 @@ namespace cli::core
 	    return books.empty();
 	}
 
+	const std::vector<std::string_view>& options() const noexcept
+	{
+	    return options_;
+	}
+
 	void parse_command_line(int, const char**);
 
 	void parse_command_line(int argc, char** argv)
 	{
 	    parse_command_line(argc, const_cast<const char**>(argv));
-	}
-
-	const std::vector<std::string_view>& options() const noexcept
-	{
-	    return options_;
 	}
 
 	const std::vector<std::string_view>& positional_options() const noexcept

@@ -1,16 +1,51 @@
 #define BOOST_TEST_MODULE parser
 
+#include <utility>
+
 #include <boost/test/unit_test.hpp>
 
 #include "core/option_book.hpp"
 #include "core/option.hpp"
 #include "core/parser.hpp"
 
+#include "error/option_is_required_but_not_added.hpp"
 #include "error/option_already_added_as.hpp"
 #include "error/option_expects_argument.hpp"
 #include "error/unrecognized_option.hpp"
 
 using namespace cli::core;
+
+BOOST_AUTO_TEST_SUITE(initialization);
+
+BOOST_AUTO_TEST_CASE(default_initialization)
+{
+    BOOST_TEST(parser().empty());
+}
+
+BOOST_AUTO_TEST_CASE(initializer_list)
+{
+    BOOST_TEST(not parser{option_book {}}.empty());
+}
+
+BOOST_AUTO_TEST_CASE(move_initialization)
+{
+    parser parser_1 {
+	option_book {
+	    option {
+		"-h",
+		"--help"
+	    }
+	}
+    };
+
+    parser parser_2 {std::move(parser_1)};
+
+    BOOST_TEST(parser_1.empty());
+
+    BOOST_TEST(not parser_2.empty());
+}
+
+BOOST_AUTO_TEST_SUITE_END();
 
 BOOST_AUTO_TEST_SUITE(add_option_book);
 
@@ -34,36 +69,91 @@ BOOST_AUTO_TEST_CASE(add_option_book)
 
 BOOST_AUTO_TEST_SUITE_END();
 
-BOOST_AUTO_TEST_SUITE(clear);
+BOOST_AUTO_TEST_SUITE(contains);
 
-BOOST_AUTO_TEST_CASE(clear_non_empty_parser)
+BOOST_AUTO_TEST_CASE(check_not_added_option)
 {
+    const option verbose {
+	"-v",
+	"--verbose"
+    };
+
     parser parser {
 	option_book {
-	    option {
-		"-h",
-		"--help"
-	    }
+	    verbose
 	}
     };
 
-    BOOST_TEST(not parser.empty());
+    const char* argv[] = {
+	"",
+	nullptr
+    };
 
-    parser.clear();
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv), argv));
 
-    BOOST_TEST(parser.empty());
+    BOOST_TEST(not parser.contains(verbose));
 }
 
-BOOST_AUTO_TEST_SUITE_END();
+BOOST_AUTO_TEST_CASE(check_added_option)
+{
+    const option verbose {
+	"-v",
+	"--verbose",
+	"-v, --[no-]verbose",
+	"verbose mode",
+	option::required::not_required,
+	option::arguments::no_arguments,
+	[](auto&& option_name)
+	{
+	    return option_name == "-v"        ||
+		   option_name == "--verbose" ||
+		   option_name == "--no-verbose";
+	}
+    };
 
-BOOST_AUTO_TEST_SUITE(contains);
+    parser parser {
+	option_book {
+	    verbose
+	}
+    };
 
-BOOST_AUTO_TEST_CASE(check_non_existent_option_book)
+    const char* argv_1[] = {
+	"",
+	"-v",
+	nullptr
+    };
+
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv_1), argv_1));
+
+    BOOST_TEST(parser.contains(verbose).has_value());
+
+    const char* argv_2[] = {
+	"",
+	"--verbose",
+	nullptr
+    };
+
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv_2), argv_2));
+
+    BOOST_TEST(parser.contains(verbose).has_value());
+
+    const char* argv_3[] = {
+	"",
+	"--no-verbose",
+	nullptr
+    };
+
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv_3), argv_3));
+
+    BOOST_TEST(parser.contains(verbose).has_value());
+}
+
+BOOST_AUTO_TEST_CASE(check_not_added_option_book)
 {
     BOOST_TEST(not parser().contains(option_book {}));
 }
 
-BOOST_AUTO_TEST_CASE(check_existing_option_book)
+BOOST_AUTO_TEST_CASE(check_added_option_book)
 {
     const option_book general_options {
 	option {
@@ -73,6 +163,45 @@ BOOST_AUTO_TEST_CASE(check_existing_option_book)
     };
 
     BOOST_TEST(parser{general_options}.contains(general_options));
+}
+
+BOOST_AUTO_TEST_CASE(check_not_added_option_name)
+{
+    BOOST_TEST(not parser().contains("").has_value());
+}
+
+BOOST_AUTO_TEST_CASE(check_added_option_name)
+{
+    parser parser {
+	option_book {
+	    option {
+		"-v",
+		"--verbose",
+		"-v, --[no-]verbose",
+		"verbose mode",
+		option::required::not_required,
+		option::arguments::no_arguments,
+		[](auto&& option_name)
+		{
+		    return option_name == "-v" ||
+			   option_name == "--verbose" ||
+			   option_name == "--no-verbose";
+		}
+	    }
+	}
+    };
+
+    const char* argv[] = {
+	"",
+	"-v",
+	nullptr
+    };
+
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv), argv));
+
+    BOOST_TEST(parser.contains("-v").has_value());
+    BOOST_TEST(parser.contains("--verbose").has_value());
+    BOOST_TEST(parser.contains("--no-verbose").has_value());
 }
 
 BOOST_AUTO_TEST_SUITE_END();
@@ -109,20 +238,6 @@ BOOST_AUTO_TEST_CASE(erase_existing_option_book)
     parser.erase(option_book {option {"-h", "--help"}});
 
     BOOST_TEST(parser.empty());
-}
-
-BOOST_AUTO_TEST_SUITE_END();
-
-BOOST_AUTO_TEST_SUITE(empty);
-
-BOOST_AUTO_TEST_CASE(check_empty_parser)
-{
-    BOOST_TEST(parser().empty());
-}
-
-BOOST_AUTO_TEST_CASE(check_non_empty_parser)
-{
-    BOOST_TEST(not parser{option_book {}}.empty());
 }
 
 BOOST_AUTO_TEST_SUITE_END();
@@ -277,27 +392,27 @@ BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_argument)
 	}
     };
 
-    const char* argv1[] = {
+    const char* argv_1[] = {
 	"",
 	"--file",
 	"a.txt",
 	nullptr
     };
 
-    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv1), argv1));
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv_1), argv_1));
 
     BOOST_REQUIRE_EQUAL(parser.options().size(), 2);
 
     BOOST_CHECK_EQUAL(parser.options()[0], "--file");
     BOOST_CHECK_EQUAL(parser.options()[1], "a.txt");
 
-    const char* argv2[] = {
+    const char* argv_2[] = {
 	"",
 	"--file=a.txt",
 	nullptr
     };
 
-    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv2), argv2));
+    BOOST_CHECK_NO_THROW(parser.parse_command_line(std::size(argv_2), argv_2));
 
     BOOST_REQUIRE_EQUAL(parser.options().size(), 1);
 
@@ -319,22 +434,22 @@ BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_missing_argument)
 	}
     };
 
-    const char* argv[] = {
+    const char* argv_1[] = {
 	"",
 	"--file",
 	nullptr
     };
 
-    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv), argv),
+    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv_1), argv_1),
 		      cli::error::option_expects_argument);
 
-    const char* argv2[] = {
+    const char* argv_2[] = {
 	"",
 	"--file=",
 	nullptr
     };
 
-    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv2), argv2),
+    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv_2), argv_2),
 		      cli::error::option_expects_argument);
 }
 
@@ -489,6 +604,29 @@ BOOST_AUTO_TEST_CASE(parse_already_added_option_without_argument)
         parser.parse_command_line(std::size(argv), argv),
 	cli::error::option_already_added_as
     );
+}
+
+BOOST_AUTO_TEST_CASE(parse_missing_required_option)
+{
+    parser parser {
+	option_book {
+	    option {
+		"-v",
+		"--verbose",
+		"-v, --[no-]verbose",
+		"verbose mode",
+		option::required::required
+	    }
+	}
+    };
+
+    const char* argv[] = {
+	"",
+	nullptr
+    };
+
+    BOOST_CHECK_THROW(parser.parse_command_line(std::size(argv), argv),
+		      cli::error::option_is_required_but_not_added);
 }
 
 BOOST_AUTO_TEST_SUITE_END();
