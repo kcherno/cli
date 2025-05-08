@@ -1,4 +1,5 @@
 set(TEST_SOURCE_FILES
+    option_is_required_but_not_added.cpp
     option_already_added_as.cpp
     option_expects_argument.cpp
     unrecognized_option.cpp)
