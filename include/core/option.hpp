@@ -4,8 +4,6 @@
 #include <functional>
 #include <utility>
 
-#include <cassert>
-
 namespace cli::core
 {
     class option final
@@ -26,38 +24,28 @@ namespace cli::core
 	    has_arguments
 	};
 
-	option(std::string_view short_name            = {},
-	       std::string_view long_name             = {},
-	       std::string_view output_representation = {},
-	       std::string_view description           = {},
+	option(std::string_view short_name     = {},
+	       std::string_view long_name      = {},
+	       std::string_view representation = {},
+	       std::string_view description    = {},
 
 	       required  is_required   = required::not_required,
 	       arguments has_arguments = arguments::no_arguments,
 
-	       const equality_validator_type& equality_validator = {}) :
-
-	    short_name_ {
-		is_short_option_name(short_name) ? short_name : ""
-	    },
-
-	    long_name_ {
-		is_long_option_name(long_name) ? long_name : ""
-	    },
-
-	    output_representation_ {output_representation},
-	    description_           {description},
-	    is_required_           {is_required},
-	    has_arguments_         {has_arguments},
-	    equality_validator_    {equality_validator}
+	       const equality_validator_type& equality_validator = {})
+	    :
+	    representation_     {representation},
+	    description_        {description},
+	    is_required_        {is_required},
+	    has_arguments_      {has_arguments},
+	    equality_validator_ {equality_validator}
 	{
-	    if (not short_name.empty())
-	    {
-		assert(is_short_option_name(short_name));
-	    }
+	    this->short_name(short_name);
+	    this->long_name(long_name);
 
-	    if (not long_name.empty())
+	    if (short_name_.empty() || long_name_.empty())
 	    {
-		assert(is_long_option_name(long_name));
+		// throw error::option_must_have_at_least_short_or_long_name
 	    }
 	}
 
@@ -75,13 +63,13 @@ namespace cli::core
 	{
 	    if (this != &other)
 	    {
-		std::swap(short_name_,            other.short_name_);
-		std::swap(long_name_,             other.long_name_);
-		std::swap(output_representation_, other.output_representation_);
-		std::swap(description_,           other.description_);
-		std::swap(is_required_,           other.is_required_);
-		std::swap(has_arguments_,         other.has_arguments_);
-		std::swap(equality_validator_,    other.equality_validator_);
+		std::swap(short_name_,         other.short_name_);
+		std::swap(long_name_,          other.long_name_);
+		std::swap(representation_,     other.representation_);
+		std::swap(description_,        other.description_);
+		std::swap(is_required_,        other.is_required_);
+		std::swap(has_arguments_,      other.has_arguments_);
+		std::swap(equality_validator_, other.equality_validator_);
 	    }
 
 	    return *this;
@@ -92,14 +80,14 @@ namespace cli::core
 	    return short_name_;
 	}
 
-	constexpr void short_name(std::string_view other) noexcept
+	void short_name(std::string_view other)
 	{
-	    assert(is_short_option_name(other));
-	    
-	    if (is_short_option_name(other))
+	    if (other.empty() || is_short_option_name(other))
 	    {
 		short_name_ = other;
 	    }
+
+	    // throw error::invalid_format_for_short_option_name
 	}
 
 	constexpr std::string_view long_name() const noexcept
@@ -107,24 +95,24 @@ namespace cli::core
 	    return long_name_;
 	}
 
-	constexpr void long_name(std::string_view other) noexcept
+	void long_name(std::string_view other)
 	{
-	    assert(is_short_option_name(other));
-
-	    if (is_long_option_name(other))
+	    if (other.empty() || is_long_option_name(other))
 	    {
 		long_name_ = other;
 	    }
+
+	    // throw error::invalid_format_for_long_option_name
 	}
 
-	constexpr std::string_view output_representation() const noexcept
+	constexpr std::string_view representation() const noexcept
 	{
-	    return output_representation_;
+	    return representation_;
 	}
 
-	constexpr void output_representation(std::string_view other) noexcept
+	constexpr void representation(std::string_view other) noexcept
 	{
-	    output_representation_ = other;
+	    representation_ = other;
 	}
 
 	constexpr std::string_view description() const noexcept
@@ -172,12 +160,6 @@ namespace cli::core
 	    std::swap(equality_validator_, other);
 	}
 
-	bool operator==(const option& other) const noexcept
-	{
-	    return (short_name_ == other.short_name_  &&
-		    long_name_  == other.long_name_);
-	}
-
 	static constexpr bool
 	is_short_option_name(std::string_view option_name) noexcept
 	{
@@ -213,7 +195,7 @@ namespace cli::core
 
 	std::string_view short_name_;
 	std::string_view long_name_;
-	std::string_view output_representation_;
+	std::string_view representation_;
 	std::string_view description_;
 
 	required  is_required_;
@@ -221,6 +203,12 @@ namespace cli::core
 
 	equality_validator_type equality_validator_;
     };
+
+    inline bool operator==(const option& lhs, const option& rhs) noexcept
+    {
+	return lhs.short_name() == rhs.short_name() &&
+	       lhs.long_name()  == rhs.long_name();
+    }
 
     inline bool
     operator==(const option& option, std::string_view option_name) noexcept
