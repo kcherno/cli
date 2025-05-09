@@ -123,7 +123,7 @@ namespace cli::core
     };
 
     template<typename CharT, typename CharTraits>
-    constexpr bool
+    inline constexpr bool
     is_short_option_name(
         std::basic_string_view<CharT, CharTraits> option_name) noexcept
     {
@@ -131,7 +131,7 @@ namespace cli::core
     }
 
     template<typename CharT, typename CharTraits>
-    constexpr bool
+    inline constexpr bool
     is_long_option_name(
         std::basic_string_view<CharT, CharTraits> option_name) noexcept
     {
@@ -139,7 +139,7 @@ namespace cli::core
     }
 
     template<typename CharT, typename CharTraits>
-    constexpr bool
+    inline constexpr bool
     is_long_option_name_with_argument(
         std::basic_string_view<CharT, CharTraits> option_name) noexcept
     {
@@ -152,7 +152,7 @@ namespace cli::core
     }
 
     template<typename CharT, typename CharTraits>
-    constexpr bool
+    inline constexpr bool
     is_option_name(
         std::basic_string_view<CharT, CharTraits> option_name) noexcept
     {
