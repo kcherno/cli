@@ -23,11 +23,11 @@ void parser::parse_command_line(int argc, const char** argv)
     {
 	std::string_view option_name = argv[i];
 
-	if (option::is_option_name(option_name))
+	if (is_option_name(option_name))
 	{
 	    add_option(option_name);
 
-	    if (option::is_long_option_name_with_argument(option_name))
+	    if (is_long_option_name_with_argument(option_name))
 	    {
 		if (option_name.find('=') == option_name.size() - 1)
 		{
@@ -44,7 +44,7 @@ void parser::parse_command_line(int argc, const char** argv)
 	    {
 		if (i + 1 < argc &&
 		    argv[i + 1]  &&
-		    not option::is_option_name(argv[i + 1]))
+		    not is_option_name(std::string_view {argv[i + 1]}))
 		{
 		    options_.emplace_back(argv[++i]);
 		}
@@ -63,18 +63,18 @@ void parser::parse_command_line(int argc, const char** argv)
 
 	option_name = argv[i - 1];
 
-	if (option::is_short_option_name(option_name) ||
-	    option::is_long_option_name(option_name))
+	if (is_short_option_name(option_name) ||
+	    is_long_option_name(option_name))
 	{
 	    if (get_option_from_book(option_name).has_arguments())
 	    {
-		options_.emplace_back(argv[i]);
+		options_.emplace_back(std::string_view {argv[i]});
 
 		continue;
 	    }
 	}
 
-	positional_options_.emplace_back(argv[i]);
+	positional_options_.emplace_back(std::string_view {argv[i]});
     }
 
     for (auto&& book : books)

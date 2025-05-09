@@ -12,7 +12,7 @@ void option_map::add_command_line_options(std::vector<std::string_view> options)
 {
     for (int i = 0, size = options.size(); i < size; ++i)
     {
-	if (option::is_option_name(options[i]))
+	if (is_option_name(options[i]))
 	{
 	    add_option(options[i]);
 	}
@@ -33,7 +33,7 @@ void option_map::add_option(std::string_view option_name)
 
 	bool long_option_with_argument = false;
 
-	if (option::is_long_option_name_with_argument(option_name))
+	if (is_long_option_name_with_argument(option_name))
 	{
 	    auto position = option_name.find('=');
 

@@ -114,37 +114,6 @@ namespace cli::core
 	    std::swap(equality_validator_, other);
 	}
 
-	static constexpr bool
-	is_short_option_name(std::string_view option_name) noexcept
-	{
-	    return option_name.size() == 2 && option_name.starts_with('-');
-	}
-
-	static constexpr bool
-	is_long_option_name(std::string_view option_name) noexcept
-	{
-	    return option_name.size() > 2 && option_name.starts_with("--");
-	}
-
-	static constexpr bool
-	is_long_option_name_with_argument(std::string_view option_name) noexcept
-	{
-	    if (is_long_option_name(option_name))
-	    {
-		return option_name.find('=') != std::string_view::npos;
-	    }
-
-	    return false;
-	}
-
-	static constexpr bool
-	is_option_name(std::string_view option_name) noexcept
-	{
-	    return (is_short_option_name(option_name) ||
-		    is_long_option_name(option_name)  ||
-		    is_long_option_name_with_argument(option_name));
-	}
-
     private:
 
 	std::string_view short_name_;
@@ -157,6 +126,45 @@ namespace cli::core
 
 	equality_validator_type equality_validator_;
     };
+
+    template<typename CharT, typename CharTraits>
+    constexpr bool
+    is_short_option_name(
+        std::basic_string_view<CharT, CharTraits> option_name) noexcept
+    {
+	return option_name.size() == 2 && option_name.starts_with('-');
+    }
+
+    template<typename CharT, typename CharTraits>
+    constexpr bool
+    is_long_option_name(
+        std::basic_string_view<CharT, CharTraits> option_name) noexcept
+    {
+	return option_name.size() > 2 && option_name.starts_with("--");
+    }
+
+    template<typename CharT, typename CharTraits>
+    constexpr bool
+    is_long_option_name_with_argument(
+        std::basic_string_view<CharT, CharTraits> option_name) noexcept
+    {
+	if (is_long_option_name(option_name))
+	{
+	    return option_name.find('=') != std::string_view::npos;
+	}
+
+	return false;
+    }
+
+    template<typename CharT, typename CharTraits>
+    constexpr bool
+    is_option_name(
+        std::basic_string_view<CharT, CharTraits> option_name) noexcept
+    {
+	return (is_short_option_name(option_name) ||
+		is_long_option_name(option_name)  ||
+		is_long_option_name_with_argument(option_name));
+    }
 
     inline bool operator==(const option& lhs, const option& rhs) noexcept
     {
