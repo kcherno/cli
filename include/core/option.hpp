@@ -2,7 +2,6 @@
 
 #include <string_view>
 #include <functional>
-#include <utility>
 
 namespace cli::core
 {
@@ -35,11 +34,7 @@ namespace cli::core
 
 	option(const option&) = default;
 
-	option(option&& other) noexcept :
-	    option {}
-	{
-	    this->operator=(std::move(other));
-	}
+	option(option&&) noexcept;
 
 	option& operator=(const option&) = default;
 

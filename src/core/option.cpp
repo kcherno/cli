@@ -52,6 +52,23 @@ option::option(
     }
 }
 
+option::option(option&& other) noexcept :
+    short_name_         {other.short_name_},
+    long_name_          {other.long_name_},
+    representation_     {other.representation_},
+    description_        {other.description_},
+    is_required_        {other.is_required_},
+    has_arguments_      {other.has_arguments_},
+    equality_validator_ {std::move(other.equality_validator_)}
+{
+    other.short_name_     = {};
+    other.long_name_      = {};
+    other.representation_ = {};
+    other.description_    = {};
+    other.is_required_    = required::not_required;
+    other.has_arguments_  = arguments::no_arguments;
+}
+
 option& option::operator=(option&& other) noexcept
 {
     if (this != &other)
