@@ -4,6 +4,12 @@
 #include <functional>
 #include <utility>
 
+#include "configuration/exception_source_information.hpp"
+
+#include "error/option_must_have_at_least_short_or_long_name.hpp"
+#include "error/invalid_format_for_short_option_name.hpp"
+#include "error/invalid_format_for_long_option_name.hpp"
+
 namespace cli::core
 {
     class option final
@@ -34,18 +40,35 @@ namespace cli::core
 
 	       const equality_validator_type& equality_validator = {})
 	    :
+	    short_name_         {short_name},
+	    long_name_          {long_name},
 	    representation_     {representation},
 	    description_        {description},
 	    is_required_        {is_required},
 	    has_arguments_      {has_arguments},
 	    equality_validator_ {equality_validator}
 	{
-	    this->short_name(short_name);
-	    this->long_name(long_name);
-
-	    if (short_name_.empty() || long_name_.empty())
+	    if (not (short_name.empty() || is_short_option_name(short_name)))
 	    {
-		// throw error::option_must_have_at_least_short_or_long_name
+		throw error::invalid_format_for_short_option_name {
+		    short_name,
+		    EXCEPTION_SOURCE_INFORMATION
+		};
+	    }
+
+	    if (not (long_name.empty() || is_long_option_name(long_name)))
+	    {
+		throw error::invalid_format_for_long_option_name {
+		    long_name,
+		    EXCEPTION_SOURCE_INFORMATION
+		};
+	    }
+
+	    if (short_name.empty() && long_name.empty())
+	    {
+		throw error::option_must_have_at_least_short_or_long_name {
+		    EXCEPTION_SOURCE_INFORMATION
+		};
 	    }
 	}
 
@@ -80,14 +103,27 @@ namespace cli::core
 	    return short_name_;
 	}
 
-	void short_name(std::string_view other)
+	void short_name(std::string_view option_name)
 	{
-	    if (other.empty() || is_short_option_name(other))
+	    if (option_name.empty() && long_name_.empty())
 	    {
-		short_name_ = other;
+		throw error::option_must_have_at_least_short_or_long_name {
+		    EXCEPTION_SOURCE_INFORMATION
+		};
 	    }
 
-	    // throw error::invalid_format_for_short_option_name
+	    if (option_name.empty() || is_short_option_name(option_name))
+	    {
+		short_name_ = option_name;
+	    }
+
+	    else
+	    {
+		throw error::invalid_format_for_short_option_name {
+		    option_name,
+		    EXCEPTION_SOURCE_INFORMATION
+		};
+	    }
 	}
 
 	constexpr std::string_view long_name() const noexcept
@@ -95,14 +131,27 @@ namespace cli::core
 	    return long_name_;
 	}
 
-	void long_name(std::string_view other)
+	void long_name(std::string_view option_name)
 	{
-	    if (other.empty() || is_long_option_name(other))
+	    if (option_name.empty() && short_name_.empty())
 	    {
-		long_name_ = other;
+		throw error::option_must_have_at_least_short_or_long_name {
+		    EXCEPTION_SOURCE_INFORMATION
+		};
 	    }
 
-	    // throw error::invalid_format_for_long_option_name
+	    if (option_name.empty() || is_long_option_name(option_name))
+	    {
+		long_name_ = option_name;
+	    }
+
+	    else
+	    {
+		throw error::invalid_format_for_long_option_name {
+		    option_name,
+		    EXCEPTION_SOURCE_INFORMATION
+		};
+	    }
 	}
 
 	constexpr std::string_view representation() const noexcept

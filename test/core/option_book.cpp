@@ -52,8 +52,8 @@ BOOST_AUTO_TEST_CASE(check_existing_option)
 
 BOOST_AUTO_TEST_CASE(check_non_existent_option)
 {
-    BOOST_TEST(not option_book().contains(option {}));
     BOOST_TEST(not option_book().contains(""));
+    BOOST_TEST(not option_book().contains(option {"-h"}));
 }
 
 BOOST_AUTO_TEST_CASE(check_existing_option_using_custom_validator)
@@ -96,8 +96,8 @@ BOOST_AUTO_TEST_CASE(access_to_existing_option)
 
 BOOST_AUTO_TEST_CASE(access_to_non_existent_option)
 {
-    BOOST_CHECK_THROW(option_book()[""],        std::out_of_range);
-    BOOST_CHECK_THROW(option_book()[option {}], std::out_of_range);
+    BOOST_CHECK_THROW(option_book()[""],            std::out_of_range);
+    BOOST_CHECK_THROW(option_book()[option {"-h"}], std::out_of_range);
 }
 
 BOOST_AUTO_TEST_SUITE_END();
