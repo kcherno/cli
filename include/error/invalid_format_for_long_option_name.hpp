@@ -15,7 +15,8 @@ namespace cli::error
             std::string_view option, std::string_view where = {})
 	    :
 	    generic::exception {
-		std::string(option).append(" invalid format for long option name"),
+		std::string(option)
+		    .append(" invalid format for long option name"),
 		where
 	    }
 	{}

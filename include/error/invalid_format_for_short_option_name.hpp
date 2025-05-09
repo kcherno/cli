@@ -11,8 +11,8 @@ namespace cli::error
     {
     public:
 
-	invalid_format_for_short_option_name(std::string_view option,
-					     std::string_view where = {})
+	invalid_format_for_short_option_name(
+            std::string_view option, std::string_view where = {})
 	    :
 	    generic::exception {
 		std::string(option)

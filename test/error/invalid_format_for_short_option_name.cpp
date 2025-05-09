@@ -10,12 +10,13 @@ BOOST_AUTO_TEST_SUITE(constructor);
 
 BOOST_AUTO_TEST_CASE(parameterized_constructor)
 {
-    BOOST_CHECK_EQUAL(invalid_format_for_short_option_name("-help").what(),
-		      "-help invalid format for short option name");
+    BOOST_CHECK_EQUAL(
+        invalid_format_for_short_option_name("-help").what(),
+	"-help invalid format for short option name");
 
-    BOOST_CHECK_EQUAL(invalid_format_for_short_option_name("-help", "where")
-		          .what(),
-		      "where: -help invalid format for short option name");
+    BOOST_CHECK_EQUAL(
+        invalid_format_for_short_option_name("-help", "where").what(),
+	"where: -help invalid format for short option name");
 }
 
 BOOST_AUTO_TEST_SUITE_END();

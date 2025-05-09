@@ -10,16 +10,10 @@ namespace cli::generic
     {
     public:
 
-	exception() = default;
-
-	exception(std::string_view what) :
-	    exception {what, ""}
-	{}
-
-	exception(std::string_view what, std::string_view where) :
+	exception(std::string_view what, std::string_view where = {}) :
 	    what_ {
 		where.empty() ?
-		what          :
+		what :
 		std::string(where).append(": ").append(what)
 	    }
 	{}

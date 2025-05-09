@@ -11,8 +11,8 @@ namespace cli::error
     {
     public:
 
-	option_expects_argument(std::string_view option,
-				std::string_view where = {})
+	option_expects_argument(
+            std::string_view option, std::string_view where = {})
 	    :
 	    generic::exception {
 		std::string(option).append(" expects argument"),

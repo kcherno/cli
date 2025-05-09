@@ -11,15 +11,15 @@ namespace cli::error
     {
     public:
 
-	option_already_added_as(std::string_view option,
-				std::string_view added_as,
-				std::string_view where = {})
+	option_already_added_as(
+            std::string_view option,
+	    std::string_view added_as,
+	    std::string_view where = {})
 	    :
 	    generic::exception {
 		std::string(option)
 		    .append(" already added as ")
 		    .append(added_as),
-
 		where
 	    }
 	{}

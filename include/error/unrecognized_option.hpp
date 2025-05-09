@@ -11,14 +11,12 @@ namespace cli::error
     {
     public:
 
-	unrecognized_option(std::string_view option = {},
-			    std::string_view where  = {})
+	unrecognized_option(
+            std::string_view option,
+	    std::string_view where = {})
 	    :
 	    generic::exception {
-		option.empty() ?
-		option :
 		std::string("unrecognized option").append(" ").append(option),
-
 		where
 	    }
 	{}

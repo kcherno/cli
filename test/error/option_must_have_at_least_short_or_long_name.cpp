@@ -10,15 +10,16 @@ BOOST_AUTO_TEST_SUITE(constructor);
 
 BOOST_AUTO_TEST_CASE(default_constructor)
 {
-    BOOST_CHECK_EQUAL(option_must_have_at_least_short_or_long_name().what(),
-		      "option must have at least short or long name");
+    BOOST_CHECK_EQUAL(
+        option_must_have_at_least_short_or_long_name().what(),
+	"option must have at least short or long name");
 }
 
 BOOST_AUTO_TEST_CASE(parameterized_constructor)
 {
-    BOOST_CHECK_EQUAL(option_must_have_at_least_short_or_long_name("where")
-		      .what(),
-		      "where: option must have at least short or long name");
+    BOOST_CHECK_EQUAL(
+        option_must_have_at_least_short_or_long_name("where").what(),
+	"where: option must have at least short or long name");
 }
 
 BOOST_AUTO_TEST_SUITE_END();

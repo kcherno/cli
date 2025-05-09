@@ -11,8 +11,8 @@ namespace cli::error
     {
     public:
 
-	option_is_required_but_not_added(std::string_view option,
-					 std::string_view where = {})
+	option_is_required_but_not_added(
+            std::string_view option, std::string_view where = {})
 	    :
 	    generic::exception {
 		std::string(option).append(" is required but not added"),

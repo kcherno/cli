@@ -6,20 +6,12 @@
 
 using namespace cli::generic;
 
-BOOST_AUTO_TEST_SUITE(initialization);
+BOOST_AUTO_TEST_SUITE(constructor);
 
-BOOST_AUTO_TEST_CASE(default_initialization)
-{
-    BOOST_CHECK_EQUAL(exception().what(), "");
-}
-
-BOOST_AUTO_TEST_CASE(initialize_argument_what)
+BOOST_AUTO_TEST_CASE(parameterized_constructor)
 {
     BOOST_CHECK_EQUAL(exception("what").what(), "what");
-}
-
-BOOST_AUTO_TEST_CASE(full_initialization)
-{
+    BOOST_CHECK_EQUAL(exception("what", "").what(), "what");
     BOOST_CHECK_EQUAL(exception("what", "where").what(), "where: what");
 }
 
