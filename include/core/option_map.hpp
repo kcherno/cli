@@ -49,10 +49,15 @@ namespace cli::core
 
 	bool contains(const dictionary& dictionary) const noexcept
 	{
-	    auto iterator = std::find(
-                dictionaries.cbegin(), dictionaries.cend(), dictionary);
+	    if (not dictionary.empty())
+	    {
+		auto iterator = std::find(
+                    dictionaries.cbegin(), dictionaries.cend(), dictionary);
 
-	    return iterator != dictionaries.cend();
+		return iterator != dictionaries.cend();
+	    }
+
+	    return false;
 	}
 
 	bool contains(const option& option) const noexcept
