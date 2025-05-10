@@ -8,6 +8,7 @@
 
 #include "dictionary.hpp"
 #include "option.hpp"
+#include "parser.hpp"
 
 namespace cli::core
 {
@@ -27,7 +28,7 @@ namespace cli::core
 	    dictionaries {ilist}
 	{}
 
-	void add_command_line_options(std::vector<std::string_view>);
+	void add_command_line_options(const parser::parsed_command_line&);
 
 	void add_option(std::string_view);
 

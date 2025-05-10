@@ -5,10 +5,12 @@
 
 #include "core/option_map.hpp"
 #include "core/option.hpp"
+#include "core/parser.hpp"
 
 using namespace cli::core;
 
-void option_map::add_command_line_options(std::vector<std::string_view> options)
+void
+option_map::add_command_line_options(const parser::parsed_command_line& options)
 {
     for (int i = 0, size = options.size(); i < size; ++i)
     {

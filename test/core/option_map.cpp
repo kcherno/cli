@@ -5,6 +5,7 @@
 #include "core/dictionary.hpp"
 #include "core/option_map.hpp"
 #include "core/option.hpp"
+#include "core/parser.hpp"
 
 using namespace cli::core;
 
@@ -37,7 +38,69 @@ BOOST_AUTO_TEST_SUITE(add_command_line_options);
 
 BOOST_AUTO_TEST_CASE(add_valid_command_line_options)
 {
-    const std::vector<std::string_view> command_line_options {
+    const dictionary dictionary {
+	option {
+	    "-v",
+	    "--verbose"
+	},
+
+	option {
+	    "-f",
+	    "--file",
+	    "-f, --file",
+	    "add file",
+	    option::required::not_required,
+	    option::arguments::has_arguments
+	},
+
+	option {
+	    "-o",
+	    "--output",
+	    "-o, --output",
+	    "specify output file",
+	    option::required::not_required,
+	    option::arguments::has_arguments
+	},
+
+	option {
+	    "-n",
+	    "--number",
+	    "-n, --number",
+	    "specify number",
+	    option::required::not_required,
+	    option::arguments::has_arguments
+	},
+
+	option {
+	    "-t",
+	    "--threads",
+	    "-t, --threads",
+	    "specify threads",
+	    option::required::not_required,
+	    option::arguments::has_arguments
+	},
+
+	option {
+	    "-c",
+	    "--config",
+	    "-c, --config",
+	    "specify configuration files",
+	    option::required::not_required,
+	    option::arguments::has_arguments
+	},
+
+	option {
+	    "-r",
+	    "--recursive",
+	    "-r, --recursive",
+	    "recursive mode"
+	}
+    };
+
+    parser parser {dictionary};
+
+    const char* argv[] = {
+	"",
 	"--verbose",
 	"-f",
 	"input.txt",
@@ -46,73 +109,16 @@ BOOST_AUTO_TEST_CASE(add_valid_command_line_options)
 	"5",
 	"--threads=8",
 	"--config=settings.ini",
-	"-r"
+	"-r",
+	nullptr
     };
 
-    option_map option_map {
-	dictionary {
-	    option {
-		"-v",
-		"--verbose"
-	    },
+    parser.parse_command_line(std::size(argv), argv);
 
-	    option {
-		"-f",
-		"--file",
-		"-f, --file",
-		"add file",
-		option::required::not_required,
-		option::arguments::has_arguments
-	    },
-
-	    option {
-		"-o",
-		"--output",
-		"-o, --output",
-		"specify output file",
-		option::required::not_required,
-		option::arguments::has_arguments
-	    },
-
-	    option {
-		"-n",
-		"--number",
-		"-n, --number",
-		"specify number",
-		option::required::not_required,
-		option::arguments::has_arguments
-	    },
-
-	    option {
-		"-t",
-		"--threads",
-		"-t, --threads",
-		"specify threads",
-		option::required::not_required,
-		option::arguments::has_arguments
-	    },
-
-	    option {
-		"-c",
-		"--config",
-		"-c, --config",
-		"specify configuration files",
-		option::required::not_required,
-		option::arguments::has_arguments
-	    },
-
-	    option {
-		"-r",
-		"--recursive",
-		"-r, --recursive",
-		"recursive mode"
-	    }
-	}
-    };
+    option_map option_map {dictionary};
 
     BOOST_CHECK_NO_THROW(
-        option_map.add_command_line_options(command_line_options);
-    );
+        option_map.add_command_line_options(parser.options()));
 
     BOOST_TEST(option_map.contains("--verbose"));
 
