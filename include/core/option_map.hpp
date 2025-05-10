@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "option_book.hpp"
+#include "dictionary.hpp"
 #include "option.hpp"
 
 namespace cli::core
@@ -23,8 +23,8 @@ namespace cli::core
 
 	option_map() = default;
 
-	option_map(std::initializer_list<option_book> ilist) :
-	    books {ilist}
+	option_map(std::initializer_list<dictionary> ilist) :
+	    dictionaries {ilist}
 	{}
 
 	void add_command_line_options(std::vector<std::string_view>);
@@ -33,28 +33,28 @@ namespace cli::core
 
 	void add_option_argument(std::string_view, std::string_view);
 
-	void add_option_book(const option_book& option_book)
+	void add_dictionary(const dictionary& dictionary)
 	{
-	    if (not contains(option_book))
+	    if (not contains(dictionary))
 	    {
-		books.emplace_back(std::move(option_book));
+		dictionaries.emplace_back(std::move(dictionary));
 	    }
 	}
 
-	void add_option_book(option_book&& option_book) noexcept
+	void add_dictionary(dictionary&& dictionary) noexcept
 	{
-	    if (not contains(option_book))
+	    if (not contains(dictionary))
 	    {
-		books.emplace_back(std::move(option_book));
+		dictionaries.emplace_back(std::move(dictionary));
 	    }
 	}
 
-	bool contains(const option_book& option_book) const noexcept
+	bool contains(const dictionary& dictionary) const noexcept
 	{
 	    auto iterator =
-		std::find(books.cbegin(), books.cend(), option_book);
+		std::find(dictionaries.cbegin(), dictionaries.cend(), dictionary);
 
-	    return iterator != books.cend();
+	    return iterator != dictionaries.cend();
 	}
 
 	bool contains(std::string_view option_name) const noexcept
@@ -77,14 +77,14 @@ namespace cli::core
 
     private:
 
-	bool book_contains_option(std::string_view option_name) const noexcept
+	bool dictionary_contains_option(std::string_view option_name) const noexcept
 	{
-	    return std::find_if(books.cbegin(), books.cend(), [&](auto&& book)
+	    return std::find_if(dictionaries.cbegin(), dictionaries.cend(), [&](auto&& dictionary)
 	    {
 
-		return book.contains(option_name);
+		return dictionary.contains(option_name);
 
-	    }) != books.cend();
+	    }) != dictionaries.cend();
 	}
 
 	bool
@@ -96,9 +96,9 @@ namespace cli::core
 	std::vector<value_type>::const_iterator
 	find_with_validation(std::string_view option_name) const noexcept
 	{
-	    if (book_contains_option(option_name))
+	    if (dictionary_contains_option(option_name))
 	    {
-		auto& option = get_option_from_book(option_name);
+		auto& option = get_option_from_dictionary(option_name);
 
 		return std::find_if(map.cbegin(), map.cend(), [&](auto&& value)
 		{
@@ -127,19 +127,19 @@ namespace cli::core
 	}
 
 	const option&
-	get_option_from_book(std::string_view option_name) const noexcept
+	get_option_from_dictionary(std::string_view option_name) const noexcept
 	{
-	    return std::find_if(books.begin(), books.end(), [&](auto&& book)
+	    return std::find_if(dictionaries.begin(), dictionaries.end(), [&](auto&& dictionary)
 	    {
 
-		return book.contains(option_name);
+		return dictionary.contains(option_name);
 
 	    })->operator[](option_name);
 	}
 
 	static std::vector<std::string_view> split_arguments(std::string_view);
 
-	std::vector<option_book> books;
+	std::vector<dictionary> dictionaries;
 	std::vector<value_type>  map;
     };
 }

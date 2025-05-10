@@ -4,7 +4,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/option_book.hpp"
+#include "core/dictionary.hpp"
 #include "core/option.hpp"
 #include "core/parser.hpp"
 
@@ -24,13 +24,13 @@ BOOST_AUTO_TEST_CASE(default_initialization)
 
 BOOST_AUTO_TEST_CASE(initializer_list)
 {
-    BOOST_TEST(not parser{option_book {}}.empty());
+    BOOST_TEST(not parser{dictionary {}}.empty());
 }
 
 BOOST_AUTO_TEST_CASE(move_initialization)
 {
     parser parser_1 {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -47,11 +47,11 @@ BOOST_AUTO_TEST_CASE(move_initialization)
 
 BOOST_AUTO_TEST_SUITE_END();
 
-BOOST_AUTO_TEST_SUITE(add_option_book);
+BOOST_AUTO_TEST_SUITE(add_dictionary);
 
-BOOST_AUTO_TEST_CASE(add_option_book)
+BOOST_AUTO_TEST_CASE(add_dictionary)
 {
-    const option_book general_options {
+    const dictionary general_options {
 	option {
 	    "-h",
 	    "--help"
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(add_option_book)
 
     BOOST_TEST(not parser.contains(general_options));
 
-    parser.add_option_book(general_options);
+    parser.add_dictionary(general_options);
 
     BOOST_TEST(parser.contains(general_options));
 }
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(check_not_added_option)
     };
 
     parser parser {
-	option_book {
+	dictionary {
 	    verbose
 	}
     };
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(check_added_option)
     };
 
     parser parser {
-	option_book {
+	dictionary {
 	    verbose
 	}
     };
@@ -148,14 +148,14 @@ BOOST_AUTO_TEST_CASE(check_added_option)
     BOOST_TEST(parser.contains(verbose).has_value());
 }
 
-BOOST_AUTO_TEST_CASE(check_not_added_option_book)
+BOOST_AUTO_TEST_CASE(check_not_added_dictionary)
 {
-    BOOST_TEST(not parser().contains(option_book {}));
+    BOOST_TEST(not parser().contains(dictionary {}));
 }
 
-BOOST_AUTO_TEST_CASE(check_added_option_book)
+BOOST_AUTO_TEST_CASE(check_added_dictionary)
 {
-    const option_book general_options {
+    const dictionary general_options {
 	option {
 	    "-h",
 	    "--help"
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(check_not_added_option_name)
 BOOST_AUTO_TEST_CASE(check_added_option_name)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-v",
 		"--verbose",
@@ -208,10 +208,10 @@ BOOST_AUTO_TEST_SUITE_END();
 
 BOOST_AUTO_TEST_SUITE(erase);
 
-BOOST_AUTO_TEST_CASE(erase_non_existent_option_book)
+BOOST_AUTO_TEST_CASE(erase_non_existent_dictionary)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -219,15 +219,15 @@ BOOST_AUTO_TEST_CASE(erase_non_existent_option_book)
 	}
     };
 
-    parser.erase(option_book {});
+    parser.erase(dictionary {});
 
     BOOST_TEST(not parser.empty());
 }
 
-BOOST_AUTO_TEST_CASE(erase_existing_option_book)
+BOOST_AUTO_TEST_CASE(erase_existing_dictionary)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(erase_existing_option_book)
 	}
     };
 
-    parser.erase(option_book {option {"-h", "--help"}});
+    parser.erase(dictionary {option {"-h", "--help"}});
 
     BOOST_TEST(parser.empty());
 }
@@ -276,7 +276,7 @@ BOOST_AUTO_TEST_CASE(parse_unrecognized_option)
 BOOST_AUTO_TEST_CASE(parse_valid_short_option)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE(parse_valid_short_option)
 BOOST_AUTO_TEST_CASE(parse_valid_short_option_with_argument)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		{},
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(parse_valid_short_option_with_argument)
 BOOST_AUTO_TEST_CASE(parse_valid_short_option_with_missing_argument)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		{},
@@ -355,7 +355,7 @@ BOOST_AUTO_TEST_CASE(parse_valid_short_option_with_missing_argument)
 BOOST_AUTO_TEST_CASE(parse_valid_long_option)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE(parse_valid_long_option)
 BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_argument)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		{},
 		"--file",
@@ -422,7 +422,7 @@ BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_argument)
 BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_missing_argument)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		{},
 		"--file",
@@ -456,7 +456,7 @@ BOOST_AUTO_TEST_CASE(parse_valid_long_option_with_missing_argument)
 BOOST_AUTO_TEST_CASE(parse_multiple_options_with_arguments)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		"--file",
@@ -502,7 +502,7 @@ BOOST_AUTO_TEST_CASE(parse_multiple_options_with_arguments)
 BOOST_AUTO_TEST_CASE(parse_options_and_positional_options)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		"--file",
@@ -585,7 +585,7 @@ BOOST_AUTO_TEST_CASE(parse_options_and_positional_options)
 BOOST_AUTO_TEST_CASE(parse_already_added_option_without_argument)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -609,7 +609,7 @@ BOOST_AUTO_TEST_CASE(parse_already_added_option_without_argument)
 BOOST_AUTO_TEST_CASE(parse_missing_required_option)
 {
     parser parser {
-	option_book {
+	dictionary {
 	    option {
 		"-v",
 		"--verbose",

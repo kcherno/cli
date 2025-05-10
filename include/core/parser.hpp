@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "core/option_book.hpp"
+#include "core/dictionary.hpp"
 #include "core/option.hpp"
 
 namespace cli::core
@@ -18,11 +18,11 @@ namespace cli::core
 
 	parser() = default;
 
-	parser(std::initializer_list<option_book> books)
+	parser(std::initializer_list<dictionary> dictionaries)
 	{
-	    for (auto&& book : books)
+	    for (auto&& dictionary : dictionaries)
 	    {
-		add_option_book(book);
+		add_dictionary(dictionary);
 	    }
 	}
 
@@ -40,7 +40,7 @@ namespace cli::core
 	{
 	    if (this != &other)
 	    {
-		std::swap(books,               other.books);
+		std::swap(dictionaries,               other.dictionaries);
 		std::swap(options_,            other.options_);
 		std::swap(positional_options_, other.positional_options_);
 	    }
@@ -48,25 +48,25 @@ namespace cli::core
 	    return *this;
 	}
 
-	void add_option_book(const option_book& option_book)
+	void add_dictionary(const dictionary& dictionary)
 	{
-	    if (not contains(option_book))
+	    if (not contains(dictionary))
 	    {
-		books.emplace_back(option_book);
+		dictionaries.emplace_back(dictionary);
 	    }
 	}
 
-	void add_option_book(option_book&& option_book)
+	void add_dictionary(dictionary&& dictionary)
 	{
-	    if (not contains(option_book))
+	    if (not contains(dictionary))
 	    {
-		books.emplace_back(std::move(option_book));
+		dictionaries.emplace_back(std::move(dictionary));
 	    }
 	}
 
 	void clear() noexcept
 	{
-	    books.clear();
+	    dictionaries.clear();
 	}
 
 	std::optional<std::string_view>
@@ -83,12 +83,12 @@ namespace cli::core
 	    return {};
 	}
 
-	bool contains(const option_book& option_book) const noexcept
+	bool contains(const dictionary& dictionary) const noexcept
 	{
 	    auto iterator =
-		std::find(books.cbegin(), books.cend(), option_book);
+		std::find(dictionaries.cbegin(), dictionaries.cend(), dictionary);
 
-	    return iterator != books.cend();
+	    return iterator != dictionaries.cend();
 	}
 
 	std::optional<std::string_view>
@@ -104,17 +104,17 @@ namespace cli::core
 	    return {};
 	}
 
-	void erase(const option_book& option_book)
+	void erase(const dictionary& dictionary)
 	{
 	    auto iterator =
-		std::remove(books.begin(), books.end(), option_book);
+		std::remove(dictionaries.begin(), dictionaries.end(), dictionary);
 
-	    books.erase(iterator, books.end());
+	    dictionaries.erase(iterator, dictionaries.end());
 	}
 
 	bool empty() const noexcept
 	{
-	    return books.empty();
+	    return dictionaries.empty();
 	}
 
 	const std::vector<std::string_view>& options() const noexcept
@@ -138,17 +138,17 @@ namespace cli::core
 
 	void add_option(std::string_view);
 
-	bool book_contains(std::string_view option_name) const noexcept
+	bool dictionary_contains(std::string_view option_name) const noexcept
 	{
-	    return find_option_in_book(option_name) != books.cend();
+	    return find_option_in_dictionary(option_name) != dictionaries.cend();
 	}
 
-	std::vector<option_book>::const_iterator
-	find_option_in_book(std::string_view option_name) const noexcept
+	std::vector<dictionary>::const_iterator
+	find_option_in_dictionary(std::string_view option_name) const noexcept
 	{
-	    return std::find_if(books.cbegin(), books.cend(), [&](auto&& book)
+	    return std::find_if(dictionaries.cbegin(), dictionaries.cend(), [&](auto&& dictionary)
 	    {
-		return book.contains(option_name);
+		return dictionary.contains(option_name);
 	    });
 	}
 
@@ -156,12 +156,12 @@ namespace cli::core
 	find_option_with_validation(std::string_view) const noexcept;
 
 	const option&
-	get_option_from_book(std::string_view option_name) const noexcept
+	get_option_from_dictionary(std::string_view option_name) const noexcept
 	{
-	    return find_option_in_book(option_name)->operator[](option_name);
+	    return find_option_in_dictionary(option_name)->operator[](option_name);
 	}
 
-	std::vector<option_book> books;
+	std::vector<dictionary> dictionaries;
 
 	std::vector<std::string_view> options_;
 	std::vector<std::string_view> positional_options_;

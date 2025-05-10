@@ -13,7 +13,7 @@
 
 namespace cli::core
 {
-    class option_book final
+    class dictionary final
     {
     public:
 
@@ -27,23 +27,21 @@ namespace cli::core
 	using difference_type = container::difference_type;
 	using size_type       = container::size_type;
 
-	option_book() = default;
+	dictionary() = default;
 
-	option_book(std::initializer_list<option> initializer_list) :
+	dictionary(std::initializer_list<option> initializer_list) :
 	    container_ {initializer_list}
 	{}
 
-	option_book(const option_book&) = default;
+	dictionary(const dictionary&) = default;
 
-	option_book(option_book&& other) noexcept :
-	    option_book {}
-	{
-	    this->operator=(std::move(other));
-	}
+	dictionary(dictionary&& other) noexcept :
+	    container_ {std::move(other.container_)}
+	{}
 
-	option_book& operator=(const option_book&) = default;
+	dictionary& operator=(const dictionary&) = default;
 
-	option_book& operator=(option_book&& other) noexcept
+	dictionary& operator=(dictionary&& other) noexcept
 	{
 	    if (this != &other)
 	    {
@@ -108,7 +106,7 @@ namespace cli::core
 	    return container_.size();
 	}
 
-	void swap(option_book& other) noexcept
+	void swap(dictionary& other) noexcept
 	{
 	    container_.swap(other.container_);
 	}
@@ -127,7 +125,7 @@ namespace cli::core
 
 	reference operator[](const_reference option)
 	{
-	    using const_this = const option_book*;
+	    using const_this = const dictionary*;
 
 	    auto&& const_reference =
 		const_cast<const_this>(this)->operator[](option);
@@ -149,7 +147,7 @@ namespace cli::core
 
 	reference operator[](std::string_view option_name)
 	{
-	    using const_this = const option_book*;
+	    using const_this = const dictionary*;
 
 	    auto&& const_reference =
 		const_cast<const_this>(this)->operator[](option_name);
@@ -166,22 +164,21 @@ namespace cli::core
 
 	const_iterator find_option(std::string_view option_name) const noexcept
 	{
-	    return std::find(container_.cbegin(),
-			     container_.cend(),
-			     option_name);
+	    return std::find(
+                container_.cbegin(), container_.cend(), option_name);
 	}
 
         container container_;
     };
 
-    inline bool operator==(const option_book& lhs,
-			   const option_book& rhs) noexcept
+    inline bool operator==(
+        const dictionary& lhs, const dictionary& rhs) noexcept
     {
 	return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend());
     }
 
-    inline bool operator!=(const option_book& lhs,
-			   const option_book& rhs) noexcept
+    inline bool operator!=(
+        const dictionary& lhs, const dictionary& rhs) noexcept
     {
 	return (not (lhs == rhs));
     }

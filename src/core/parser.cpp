@@ -40,7 +40,7 @@ void parser::parse_command_line(int argc, const char** argv)
 		continue;
 	    }
 
-	    if (get_option_from_book(option_name).has_arguments())
+	    if (get_option_from_dictionary(option_name).has_arguments())
 	    {
 		if (i + 1 < argc &&
 		    argv[i + 1]  &&
@@ -66,7 +66,7 @@ void parser::parse_command_line(int argc, const char** argv)
 	if (is_short_option_name(option_name) ||
 	    is_long_option_name(option_name))
 	{
-	    if (get_option_from_book(option_name).has_arguments())
+	    if (get_option_from_dictionary(option_name).has_arguments())
 	    {
 		options_.emplace_back(std::string_view {argv[i]});
 
@@ -77,9 +77,9 @@ void parser::parse_command_line(int argc, const char** argv)
 	positional_options_.emplace_back(std::string_view {argv[i]});
     }
 
-    for (auto&& book : books)
+    for (auto&& dictionary : dictionaries)
     {
-	for (auto&& option : book)
+	for (auto&& option : dictionary)
 	{
 	    if (option.is_required() && not contains(option))
 	    {
@@ -98,9 +98,9 @@ void parser::add_option(std::string_view option_name)
 {
     auto option = option_name.substr(0, option_name.find('='));
 
-    if (book_contains(option))
+    if (dictionary_contains(option))
     {
-	if (not get_option_from_book(option).has_arguments())
+	if (not get_option_from_dictionary(option).has_arguments())
 	{
 	    if (auto optional = contains(option); optional)
 	    {
@@ -127,9 +127,9 @@ void parser::add_option(std::string_view option_name)
 std::vector<std::string_view>::const_iterator
 parser::find_option_with_validation(std::string_view option_name) const noexcept
 {
-    auto iterator = find_option_in_book(option_name);
+    auto iterator = find_option_in_dictionary(option_name);
 
-    if (iterator != books.cend())
+    if (iterator != dictionaries.cend())
     {
 	auto& option = iterator->operator[](option_name);
 

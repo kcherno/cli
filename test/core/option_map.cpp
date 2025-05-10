@@ -2,7 +2,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "core/option_book.hpp"
+#include "core/dictionary.hpp"
 #include "core/option_map.hpp"
 #include "core/option.hpp"
 
@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(default_initialization)
 BOOST_AUTO_TEST_CASE(initializer_list)
 {
     const option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(initializer_list)
 	}
     };
 
-    BOOST_TEST(option_map.contains(option_book {option {"-h", "--help"}}));
+    BOOST_TEST(option_map.contains(dictionary {option {"-h", "--help"}}));
 }
 
 BOOST_AUTO_TEST_SUITE_END();
@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(add_valid_command_line_options)
     };
 
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-v",
 		"--verbose"
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_SUITE(add_option);
 BOOST_AUTO_TEST_CASE(add_valid_short_option)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help",
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(add_valid_short_option)
 BOOST_AUTO_TEST_CASE(add_valid_long_option)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help",
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(add_valid_long_option)
 BOOST_AUTO_TEST_CASE(add_valid_long_option_with_argument)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		"--file",
@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_CASE(add_valid_long_option_with_argument)
 BOOST_AUTO_TEST_CASE(add_valid_long_option_without_argument)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		"--file",
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_SUITE(add_option_argument);
 BOOST_AUTO_TEST_CASE(add_argument_to_option_with_arguments)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		"--file",
@@ -252,7 +252,7 @@ BOOST_AUTO_TEST_CASE(add_argument_to_option_with_arguments)
 BOOST_AUTO_TEST_CASE(add_empty_argument_to_option_with_arguments)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-f",
 		"--file",
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(add_empty_argument_to_option_with_arguments)
 BOOST_AUTO_TEST_CASE(add_argument_to_option_without_arguments)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -285,11 +285,11 @@ BOOST_AUTO_TEST_CASE(add_argument_to_option_without_arguments)
 
 BOOST_AUTO_TEST_SUITE_END();
 
-BOOST_AUTO_TEST_SUITE(add_option_book);
+BOOST_AUTO_TEST_SUITE(add_dictionary);
 
-BOOST_AUTO_TEST_CASE(assign_option_book)
+BOOST_AUTO_TEST_CASE(assign_dictionary)
 {
-    const option_book option_book {
+    const dictionary dictionary {
 	option {
 	    "-v",
 	    "--verbose"
@@ -298,11 +298,11 @@ BOOST_AUTO_TEST_CASE(assign_option_book)
 
     option_map option_map;
 
-    BOOST_CHECK_EQUAL(option_map.contains(option_book), false);
+    BOOST_CHECK_EQUAL(option_map.contains(dictionary), false);
 
-    option_map.add_option_book(option_book);
+    option_map.add_dictionary(dictionary);
 
-    BOOST_TEST(option_map.contains(option_book));
+    BOOST_TEST(option_map.contains(dictionary));
 }
 
 BOOST_AUTO_TEST_SUITE_END();
@@ -312,7 +312,7 @@ BOOST_AUTO_TEST_SUITE(contains);
 BOOST_AUTO_TEST_CASE(check_existing_option)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE(check_existing_option)
 BOOST_AUTO_TEST_CASE(check_non_existent_option)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -353,7 +353,7 @@ BOOST_AUTO_TEST_CASE(access_to_arguments_of_unrecognized_option)
 BOOST_AUTO_TEST_CASE(access_to_arguments_of_option_that_not_yet_added)
 {
     const option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(access_to_arguments_of_option_that_not_yet_added)
 BOOST_AUTO_TEST_CASE(access_to_arguments_of_option_that_has_no_arguments)
 {
     option_map option_map {
-	option_book {
+	dictionary {
 	    option {
 		"-h",
 		"--help"

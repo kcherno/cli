@@ -43,7 +43,7 @@ void option_map::add_option(std::string_view option_name)
 	    long_option_with_argument = true;
 	}
 
-	if (book_contains_option(key))
+	if (dictionary_contains_option(key))
 	{
 	    map.emplace_back(value_type {key, {}});
 
@@ -81,7 +81,7 @@ void option_map::add_option_argument(std::string_view option_name,
 {
     add_option(option_name);
 
-    auto& option = get_option_from_book(option_name);
+    auto& option = get_option_from_dictionary(option_name);
 
     if (option.has_arguments())
     {
@@ -115,7 +115,7 @@ option_map::operator[](std::string_view option_name) const
 {
     if (contains_with_validation(option_name))
     {
-	if (get_option_from_book(option_name).has_arguments())
+	if (get_option_from_dictionary(option_name).has_arguments())
 	{
 	    return get_option_arguments(option_name);
 	}
@@ -128,7 +128,7 @@ option_map::operator[](std::string_view option_name) const
         };
     }
 
-    if (book_contains_option(option_name))
+    if (dictionary_contains_option(option_name))
     {
 	throw std::logic_error {
 	    std::string(__func__)

@@ -1,5 +1,5 @@
 set(TEST_SOURCE_FILES
-    option_book.cpp
+    dictionary.cpp
     option_map.cpp
     option.cpp
     parser.cpp)
