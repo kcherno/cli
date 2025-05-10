@@ -16,6 +16,61 @@ namespace cli::core
     {
     public:
 
+	class parsed_command_line final : private std::vector<std::string_view>
+	{
+	public:
+
+	    friend parser;
+
+	    using container = std::vector<std::string_view>;
+
+	    using value_type      = container::value_type;
+	    using reference       = container::reference;
+	    using const_reference = container::const_reference;
+	    using size_type       = container::size_type;
+	    using iterator        = container::iterator;
+	    using const_iterator  = container::const_iterator;
+
+	    const_iterator cbegin() const noexcept
+	    {
+		return container::cbegin();
+	    }
+
+	    const_iterator cend() const noexcept
+	    {
+		return container::cend();
+	    }
+
+	    const_iterator begin() const noexcept
+	    {
+		return container::begin();
+	    }
+
+	    const_iterator end() const noexcept
+	    {
+		return container::end();
+	    }
+
+	    bool empty() const noexcept
+	    {
+		return container::empty();
+	    }
+
+	    size_type size() const noexcept
+	    {
+		return container::size();
+	    }
+
+	    const_reference operator[](size_type position) const
+	    {
+		return container::operator[](position);
+	    }
+
+	private:
+
+	    parsed_command_line() = default;
+	};
+
 	parser() = default;
 
 	parser(std::initializer_list<dictionary> dictionaries)
@@ -117,7 +172,7 @@ namespace cli::core
 	    return dictionaries.empty();
 	}
 
-	const std::vector<std::string_view>& options() const noexcept
+	const parsed_command_line& options() const noexcept
 	{
 	    return options_;
 	}
@@ -163,7 +218,7 @@ namespace cli::core
 
 	std::vector<dictionary> dictionaries;
 
-	std::vector<std::string_view> options_;
+	parsed_command_line           options_;
 	std::vector<std::string_view> positional_options_;
     };
 }
