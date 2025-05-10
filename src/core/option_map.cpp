@@ -3,9 +3,13 @@
 #include <string>
 #include <vector>
 
+#include "configuration/exception_source_information.hpp"
+
 #include "core/option_map.hpp"
 #include "core/option.hpp"
 #include "core/parser.hpp"
+
+#include "error/unrecognized_option.hpp"
 
 using namespace cli::core;
 
@@ -28,7 +32,7 @@ option_map::add_command_line_options(const parser::parsed_command_line& options)
 
 void option_map::add_option(std::string_view option_name)
 {
-    if (not contains_with_validation(option_name))
+    if (not contains(option_name))
     {
 	std::string_view key = option_name;
 	std::string_view value;
@@ -115,7 +119,7 @@ void option_map::add_option_argument(std::string_view option_name,
 const option_map::mapped_type&
 option_map::operator[](std::string_view option_name) const
 {
-    if (contains_with_validation(option_name))
+    if (contains(option_name))
     {
 	if (get_option_from_dictionary(option_name).has_arguments())
 	{
