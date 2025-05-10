@@ -3,6 +3,7 @@
 #include <string_view>
 #include <algorithm>
 #include <stdexcept>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -30,21 +31,17 @@ namespace cli::core
 
 	void add_command_line_options(const parser::parsed_command_line&);
 
-	void add_option(std::string_view);
-
-	void add_option_argument(std::string_view, std::string_view);
-
 	void add_dictionary(const dictionary& dictionary)
 	{
-	    if (not contains(dictionary))
+	    if (not (dictionary.empty() || contains(dictionary)))
 	    {
-		dictionaries.emplace_back(std::move(dictionary));
+		dictionaries.emplace_back(dictionary);
 	    }
 	}
 
 	void add_dictionary(dictionary&& dictionary) noexcept
 	{
-	    if (not contains(dictionary))
+	    if (not (dictionary.empty() || contains(dictionary)))
 	    {
 		dictionaries.emplace_back(std::move(dictionary));
 	    }
@@ -52,50 +49,70 @@ namespace cli::core
 
 	bool contains(const dictionary& dictionary) const noexcept
 	{
-	    auto iterator =
-		std::find(dictionaries.cbegin(), dictionaries.cend(), dictionary);
+	    auto iterator = std::find(
+                dictionaries.cbegin(), dictionaries.cend(), dictionary);
 
 	    return iterator != dictionaries.cend();
 	}
 
-	bool contains(std::string_view option_name) const noexcept
+	bool contains(const option& option) const noexcept
 	{
-	    auto iterator =
-		std::find_if(map.cbegin(), map.cend(), [&](auto&& value)
+	    auto iterator = std::find_if(
+                map.cbegin(), map.cend(), [&](auto&& value)
 		{
-		    return value.first == option_name;
+		    return option == value.first;
 		});
 
 	    return iterator != map.cend();
+	}
+
+	std::optional<std::string_view>
+	contains(std::string_view option_name) const noexcept
+	{
+	    auto iterator = find_option_in_map(option_name);
+
+	    if (iterator != map.cend())
+	    {
+		return iterator->first;
+	    }
+
+	    return {};
 	}
 
 	const mapped_type& operator[](std::string_view) const;
 
 	bool empty() const noexcept
 	{
-	    return map.empty();
+	    return dictionaries.empty();
 	}
 
     private:
 
-	bool dictionary_contains_option(std::string_view option_name) const noexcept
-	{
-	    return std::find_if(dictionaries.cbegin(), dictionaries.cend(), [&](auto&& dictionary)
-	    {
+	void add_option(std::string_view);
 
-		return dictionary.contains(option_name);
-
-	    }) != dictionaries.cend();
-	}
+	void add_option_argument(std::string_view, std::string_view);
 
 	bool
-	contains_with_validation(std::string_view option_name) const noexcept
+	dictionary_contains_option(std::string_view option_name) const noexcept
 	{
-	    return find_with_validation(option_name) != map.cend();
+	    return (find_option_in_dictionary(option_name) !=
+		    dictionaries.cend());
+	}
+
+	std::vector<dictionary>::const_iterator
+	find_option_in_dictionary(std::string_view option_name) const noexcept
+	{
+	    return std::find_if(
+                dictionaries.cbegin(),
+		dictionaries.cend(),
+		[&](auto&& dictionary)
+		{
+		    return dictionary.contains(option_name);
+		});
 	}
 
 	std::vector<value_type>::const_iterator
-	find_with_validation(std::string_view option_name) const noexcept
+	find_option_in_map(std::string_view option_name) const noexcept
 	{
 	    if (dictionary_contains_option(option_name))
 	    {
@@ -113,7 +130,7 @@ namespace cli::core
 	const mapped_type&
 	get_option_arguments(std::string_view option_name) const noexcept
 	{
-	    return find_with_validation(option_name)->second;
+	    return find_option_in_map(option_name)->second;
 	}
 
 	mapped_type&
@@ -130,17 +147,12 @@ namespace cli::core
 	const option&
 	get_option_from_dictionary(std::string_view option_name) const noexcept
 	{
-	    return std::find_if(dictionaries.begin(), dictionaries.end(), [&](auto&& dictionary)
-	    {
-
-		return dictionary.contains(option_name);
-
-	    })->operator[](option_name);
+	    return (*find_option_in_dictionary(option_name))[option_name];
 	}
 
 	static std::vector<std::string_view> split_arguments(std::string_view);
 
 	std::vector<dictionary> dictionaries;
-	std::vector<value_type>  map;
+	std::vector<value_type> map;
     };
 }
