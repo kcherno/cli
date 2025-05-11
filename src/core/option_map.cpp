@@ -9,6 +9,8 @@
 #include "core/option.hpp"
 #include "core/parser.hpp"
 
+#include "error/accessing_option_without_arguments.hpp"
+#include "error/accessing_option_not_yet_added.hpp"
 #include "error/unrecognized_option.hpp"
 
 using namespace cli::core;
@@ -126,37 +128,29 @@ option_map::operator[](const option& option) const
 	    return it->second;
 	}
 
-	throw std::logic_error {
-	    std::string(__func__)
-		.append(": ")
-		.append(
-                    option.short_name().empty() ?
-		    option.long_name() :
-		    option.short_name())
-		.append(" has no arguments")
-        };
+	throw error::accessing_option_without_arguments {
+	    option.short_name().empty() ?
+	    option.long_name() :
+	    option.short_name(),
+	    EXCEPTION_SOURCE_INFORMATION
+	};
     }
 
     if (dictionary_contains_option(option))
     {
-	throw std::logic_error {
-	    std::string(__func__)
-		.append(": ")
-		.append(
-		    option.short_name().empty() ?
-		    option.long_name() :
-		    option.short_name())
-		.append(" not added yet")
+	throw error::accessing_option_not_yet_added {
+	    option.short_name().empty() ?
+	    option.long_name() :
+	    option.short_name(),
+	    EXCEPTION_SOURCE_INFORMATION
 	};
     }
 
-    throw std::logic_error {
-	std::string(__func__)
-	    .append(": unrecognized option ")
-	    .append(
-	        option.short_name().empty() ?
-		option.long_name() :
-		option.short_name())
+    throw error::unrecognized_option {
+	option.short_name().empty() ?
+	option.long_name() :
+	option.short_name(),
+	EXCEPTION_SOURCE_INFORMATION
     };
 }
 
@@ -170,28 +164,23 @@ option_map::operator[](std::string_view option_name) const
 	    return it->second;
 	}
 
-	throw std::logic_error {
-	    std::string(__func__)
-		.append(": ")
-		.append(option_name)
-		.append(" has no arguments")
-        };
+	throw error::accessing_option_without_arguments {
+	    option_name,
+	    EXCEPTION_SOURCE_INFORMATION
+	};
     }
 
     if (dictionary_contains_option(option_name))
     {
-	throw std::logic_error {
-	    std::string(__func__)
-		.append(": ")
-		.append(option_name)
-		.append(" not added yet")
+	throw error::accessing_option_not_yet_added {
+	    option_name,
+	    EXCEPTION_SOURCE_INFORMATION
 	};
     }
 
-    throw std::logic_error {
-	std::string(__func__)
-	    .append(": unrecognized option ")
-	    .append(option_name)
+    throw error::unrecognized_option {
+	option_name,
+        EXCEPTION_SOURCE_INFORMATION
     };
 }
 
