@@ -95,7 +95,7 @@ namespace cli::core
 	{
 	    if (this != &other)
 	    {
-		std::swap(dictionaries,               other.dictionaries);
+		std::swap(dictionaries,        other.dictionaries);
 		std::swap(options_,            other.options_);
 		std::swap(positional_options_, other.positional_options_);
 	    }
@@ -127,8 +127,8 @@ namespace cli::core
 	std::optional<std::string_view>
 	contains(const option& option) const noexcept
 	{
-	    auto iterator =
-		std::find(options_.cbegin(), options_.cend(), option);
+	    auto iterator = std::find(
+                options_.cbegin(), options_.cend(), option);
 
 	    if (iterator != options_.cend())
 	    {
@@ -140,8 +140,8 @@ namespace cli::core
 
 	bool contains(const dictionary& dictionary) const noexcept
 	{
-	    auto iterator =
-		std::find(dictionaries.cbegin(), dictionaries.cend(), dictionary);
+	    auto iterator = std::find(
+                dictionaries.cbegin(), dictionaries.cend(), dictionary);
 
 	    return iterator != dictionaries.cend();
 	}
@@ -161,8 +161,8 @@ namespace cli::core
 
 	void erase(const dictionary& dictionary)
 	{
-	    auto iterator =
-		std::remove(dictionaries.begin(), dictionaries.end(), dictionary);
+	    auto iterator = std::remove(
+                dictionaries.begin(), dictionaries.end(), dictionary);
 
 	    dictionaries.erase(iterator, dictionaries.end());
 	}
@@ -195,16 +195,20 @@ namespace cli::core
 
 	bool dictionary_contains(std::string_view option_name) const noexcept
 	{
-	    return find_option_in_dictionary(option_name) != dictionaries.cend();
+	    return (find_option_in_dictionary(option_name) !=
+		    dictionaries.cend());
 	}
 
 	std::vector<dictionary>::const_iterator
 	find_option_in_dictionary(std::string_view option_name) const noexcept
 	{
-	    return std::find_if(dictionaries.cbegin(), dictionaries.cend(), [&](auto&& dictionary)
-	    {
-		return dictionary.contains(option_name);
-	    });
+	    return std::find_if(
+                dictionaries.cbegin(),
+		dictionaries.cend(),
+		[&](auto&& dictionary)
+		{
+		    return dictionary.contains(option_name);
+		});
 	}
 
 	std::vector<std::string_view>::const_iterator
@@ -213,7 +217,8 @@ namespace cli::core
 	const option&
 	get_option_from_dictionary(std::string_view option_name) const noexcept
 	{
-	    return find_option_in_dictionary(option_name)->operator[](option_name);
+	    return find_option_in_dictionary(option_name)
+		->operator[](option_name);
 	}
 
 	std::vector<dictionary> dictionaries;
