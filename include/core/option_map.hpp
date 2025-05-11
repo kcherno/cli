@@ -29,6 +29,26 @@ namespace cli::core
 	    dictionaries {ilist}
 	{}
 
+	option_map(const option_map&) = default;
+
+	option_map(option_map&& other) noexcept :
+	    dictionaries {std::move(other.dictionaries)},
+	    map          {std::move(other.map)}
+	{}
+
+	option_map& operator=(const option_map&) = default;
+
+	option_map& operator=(option_map&& other) noexcept
+	{
+	    if (this != &other)
+	    {
+		std::swap(dictionaries, other.dictionaries);
+		std::swap(map,          other.map);
+	    }
+
+	    return *this;
+	}
+
 	void add_command_line_options(const parser::parsed_command_line&);
 
 	void add_dictionary(const dictionary& dictionary)
