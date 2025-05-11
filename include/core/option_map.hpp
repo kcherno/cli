@@ -62,27 +62,21 @@ namespace cli::core
 
 	bool contains(const option& option) const noexcept
 	{
-	    auto iterator = std::find_if(
-                map.cbegin(), map.cend(), [&](auto&& value)
-		{
-		    return option == value.first;
-		});
-
-	    return iterator != map.cend();
+	    return find_option_in_map(option) != map.cend();
 	}
 
 	std::optional<std::string_view>
 	contains(std::string_view option_name) const noexcept
 	{
-	    auto iterator = find_option_in_map(option_name);
-
-	    if (iterator != map.cend())
+	    if (auto it = find_option_in_map(option_name); it != map.cend())
 	    {
-		return iterator->first;
+		return it->first;
 	    }
 
 	    return {};
 	}
+
+	const mapped_type& operator[](const option&) const;
 
 	const mapped_type& operator[](std::string_view) const;
 
@@ -98,10 +92,28 @@ namespace cli::core
 	void add_option_argument(std::string_view, std::string_view);
 
 	bool
+	dictionary_contains_option(const option& option) const noexcept
+	{
+	    return find_option_in_dictionary(option) != dictionaries.cend();
+	}
+
+	bool
 	dictionary_contains_option(std::string_view option_name) const noexcept
 	{
 	    return (find_option_in_dictionary(option_name) !=
 		    dictionaries.cend());
+	}
+
+	std::vector<dictionary>::const_iterator
+	find_option_in_dictionary(const option& option) const noexcept
+	{
+	    return std::find_if(
+                dictionaries.cbegin(),
+		dictionaries.cend(),
+		[&](auto&& dictionary)
+		{
+		    return dictionary.contains(option);
+		});
 	}
 
 	std::vector<dictionary>::const_iterator
@@ -114,6 +126,15 @@ namespace cli::core
 		{
 		    return dictionary.contains(option_name);
 		});
+	}
+
+	std::vector<value_type>::const_iterator
+	find_option_in_map(const option& option) const noexcept
+	{
+	    return std::find_if(map.cbegin(), map.cend(), [&](auto&& value)
+	    {
+		return option == value.first;
+	    });
 	}
 
 	std::vector<value_type>::const_iterator

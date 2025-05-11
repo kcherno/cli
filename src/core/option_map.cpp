@@ -117,13 +117,57 @@ void option_map::add_option_argument(std::string_view option_name,
 }
 
 const option_map::mapped_type&
+option_map::operator[](const option& option) const
+{
+    if (auto it = find_option_in_map(option); it != map.cend())
+    {
+	if (option.has_arguments())
+	{
+	    return it->second;
+	}
+
+	throw std::logic_error {
+	    std::string(__func__)
+		.append(": ")
+		.append(
+                    option.short_name().empty() ?
+		    option.long_name() :
+		    option.short_name())
+		.append(" has no arguments")
+        };
+    }
+
+    if (dictionary_contains_option(option))
+    {
+	throw std::logic_error {
+	    std::string(__func__)
+		.append(": ")
+		.append(
+		    option.short_name().empty() ?
+		    option.long_name() :
+		    option.short_name())
+		.append(" not added yet")
+	};
+    }
+
+    throw std::logic_error {
+	std::string(__func__)
+	    .append(": unrecognized option ")
+	    .append(
+	        option.short_name().empty() ?
+		option.long_name() :
+		option.short_name())
+    };
+}
+
+const option_map::mapped_type&
 option_map::operator[](std::string_view option_name) const
 {
-    if (contains(option_name))
+    if (auto it = find_option_in_map(option_name); it != map.cend())
     {
 	if (get_option_from_dictionary(option_name).has_arguments())
 	{
-	    return get_option_arguments(option_name);
+	    return it->second;
 	}
 
 	throw std::logic_error {
