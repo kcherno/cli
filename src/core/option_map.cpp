@@ -1,5 +1,4 @@
 #include <string_view>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -34,88 +33,37 @@ option_map::add_command_line_options(const parser::parsed_command_line& options)
 
 void option_map::add_option(std::string_view option_name)
 {
-    if (not contains(option_name))
+    std::string_view key = option_name;
+    std::string_view value;
+
+    if (is_long_option_name_with_argument(key))
     {
-	std::string_view key = option_name;
-	std::string_view value;
+	auto position = option_name.find('=');
 
-	bool long_option_with_argument = false;
+	key   = option_name.substr(0, position);
+	value = option_name.substr(++position);
+    }
 
-	if (is_long_option_name_with_argument(option_name))
+    if (not contains(key))
+    {
+	map.emplace_back(value_type {key, {}});
+    }
+
+    if (not value.empty())
+    {
+	auto arguments = split_arguments(value);
+
+	for (auto&& argument : arguments)
 	{
-	    auto position = option_name.find('=');
-
-	    key   = option_name.substr(0, position);
-	    value = option_name.substr(++position);
-
-	    long_option_with_argument = true;
-	}
-
-	if (dictionary_contains_option(key))
-	{
-	    map.emplace_back(value_type {key, {}});
-
-	    if (long_option_with_argument)
-	    {
-		auto arguments = split_arguments(value);
-
-		if (arguments.empty())
-		{
-		    // raise an exception
-
-		    add_option_argument(key, {});
-		}
-
-		for (auto&& argument : arguments)
-		{
-		    add_option_argument(key, argument);
-		}
-	    }
-	}
-
-	else
-	{
-	    throw std::logic_error {
-		std::string(__func__)
-		    .append(": unrecognized option ")
-		    .append(option_name)
-	    };
+	    add_option_argument(key, argument);
 	}
     }
 }
 
-void option_map::add_option_argument(std::string_view option_name,
-				     std::string_view option_argument)
+void option_map::add_option_argument(
+    std::string_view option_name, std::string_view option_argument)
 {
-    add_option(option_name);
-
-    auto& option = get_option_from_dictionary(option_name);
-
-    if (option.has_arguments())
-    {
-	if (option_argument.empty())
-	{
-	    throw std::logic_error {
-		std::string(__func__)
-		    .append(": ")
-		    .append(option_name)
-		    .append(" expects argument")
-	    };
-	}
-
-	get_option_arguments(option_name)
-	    .emplace_back(option_argument);
-    }
-
-    else
-    {
-	throw std::logic_error {
-	    std::string(__func__)
-		.append(": ")
-		.append(option_name)
-		.append(" does not take arguments")
-        };
-    }
+    get_option_arguments(option_name).emplace_back(option_argument);
 }
 
 const option_map::mapped_type&
