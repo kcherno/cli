@@ -4,6 +4,7 @@ set(TEST_SOURCE_FILES
     invalid_format_for_long_option_name.cpp
     accessing_option_without_arguments.cpp
     option_is_required_but_not_added.cpp
+    accessing_option_not_yet_added.cpp
     option_already_added_as.cpp
     option_expects_argument.cpp
     unrecognized_option.cpp)
