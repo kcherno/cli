@@ -1,0 +1,1 @@
+add_cli_boost_unit_test(verification.cpp)
