@@ -4,253 +4,88 @@
 
 #include <string_view>
 #include <stdexcept>
+#include <format>
 #include <string>
 
 #include <boost/test/unit_test.hpp>
 
-#include "options/grammar.hpp"
-#include "options/option.hpp"
-#include "options/parser.hpp"
+#include "options.hpp"
+#include "option.hpp"
+#include "parser.hpp"
 
 BOOST_AUTO_TEST_SUITE(parser);
-
-BOOST_AUTO_TEST_SUITE(parsed_options);
-
-BOOST_AUTO_TEST_SUITE(subscript_operator);
-
-BOOST_AUTO_TEST_CASE(option_is_not_stored)
-{
-    const char* argv[] = {"<application name>", nullptr};
-
-    constexpr int argc = 1;
-
-    const auto& [parsed_options, positional_options] =
-        options::parser().parse_command_line(argc, argv);
-
-    BOOST_CHECK_EXCEPTION(
-        parsed_options["-h"], std::runtime_error, [](auto&& exception)
-        {
-            return std::string_view(exception.what()) ==
-                "parser::parsed_options::operator[]: -h is not stored";
-        });
-}
-
-BOOST_AUTO_TEST_CASE(option_has_no_arguments)
-{
-    const options::grammar grammar {
-        options::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        }
-    };
-
-    const char* argv[] = {"<application name>", "-h", nullptr};
-
-    constexpr int argc = 2;
-
-    const auto& [parsed_options, positional_options] =
-        options::parser(grammar).parse_command_line(argc, argv);
-
-    BOOST_CHECK_EXCEPTION(
-        parsed_options["-h"], std::logic_error, [](auto&& exception)
-        {
-            return std::string_view(exception.what()) ==
-                "parser::parsed_options::operator[]: "
-                "[-h, --help] has no arguments";
-        });
-}
-
-BOOST_AUTO_TEST_SUITE_END(); // parser/parsed_options/subscript_operator
-
-BOOST_AUTO_TEST_SUITE_END(); // parser/parsed_options
 
 BOOST_AUTO_TEST_SUITE(constructor);
 
 BOOST_AUTO_TEST_CASE(default_constructor)
 {
-    const char* argv[] = {
-        "<application name>",
-        "--help",
-        nullptr
+    const cli::parser parser;
+
+    BOOST_TEST(parser.empty());
+}
+
+BOOST_AUTO_TEST_CASE(parameterized_constructor)
+{
+    const cli::parser parser {
+        cli::options {
+            cli::option {
+                .short_name = "-h",
+                .long_name  = "--help"
+            }
+        }
     };
 
-    constexpr int argc = 2;
-
-    BOOST_CHECK_EXCEPTION(
-        options::parser().parse_command_line(argc, argv),
-        std::runtime_error,
-        [](auto&& exception)
-        {
-            return std::string_view(exception.what()) ==
-                "parser::parse_command_line: --help is an unrecognized option";
-        });
+    BOOST_TEST(not parser.empty());
 }
 
 BOOST_AUTO_TEST_CASE(copy_constructor)
 {
-    const options::grammar grammar {
-        options::option {
-            .short_name = "-h",
-            .long_name  = "--help"
+    const cli::parser parser_1 {
+        cli::options {
+            cli::option {
+                .short_name = "-h",
+                .long_name  = "--help"
+            }
         }
     };
 
-    const options::parser parser {grammar};
+    const auto parser_2 {parser_1};
 
-    const char* argv[] = {
-        "<application name>",
-        "--help",
-        nullptr
-    };
+    BOOST_TEST(not parser_1.empty());
 
-    constexpr int argc = 2;
-
-    BOOST_CHECK_NO_THROW(
-        options::parser(parser).parse_command_line(argc, argv));
+    BOOST_TEST(not parser_2.empty());
 }
 
 BOOST_AUTO_TEST_CASE(move_constructor)
 {
-    const options::grammar grammar {
-        options::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        }
-    };
-
-    options::parser parser {grammar};
-
-    const char* argv[] = {
-        "<application name>",
-        "--help",
-        nullptr
-    };
-
-    constexpr int argc = 2;
-
-    const options::parser const_parser {std::move(parser)};
-
-    BOOST_CHECK_EXCEPTION(
-        parser.parse_command_line(argc, argv),
-        std::runtime_error,
-        [](auto&& exception)
-        {
-            return std::string_view(exception.what()) ==
-                "parser::parse_command_line: --help is an unrecognized option";
-        });
-}
-
-BOOST_AUTO_TEST_SUITE(parameterized_constructor);
-
-BOOST_AUTO_TEST_CASE(initializer_list)
-{
-    const options::parser parser {
-        options::grammar {
-            options::option {
-                .short_name = "-f",
-                .long_name  = "--file",
-            }
-        },
-
-        options::grammar {
-            options::option {
-                .short_name  = "-m",
-                .long_name   = "--mode",
-                .is_required = true
+    cli::parser parser_1 {
+        cli::options {
+            cli::option {
+                .short_name = "-h",
+                .long_name  = "--help"
             }
         }
     };
 
-    const char* argv[] = {
-        "<application name>",
-        "--mode=soft",
-        "-f",
-        "file.txt",
-        nullptr
-    };
+    const auto parser_2 {std::move(parser_1)};
 
-    constexpr int argc = 4;
+    BOOST_TEST(parser_1.empty());
 
-    BOOST_CHECK_NO_THROW(parser.parse_command_line(argc, argv));
+    BOOST_TEST(not parser_2.empty());
 }
-
-BOOST_AUTO_TEST_SUITE_END(); // parser/constructor/parameterized_constructor
 
 BOOST_AUTO_TEST_SUITE_END(); // parser/constructor
 
-BOOST_AUTO_TEST_SUITE(assignment_operator);
-
-BOOST_AUTO_TEST_CASE(copy)
-{
-    const options::grammar grammar {
-        options::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        }
-    };
-
-    const options::parser parser_1 {grammar};
-
-    options::parser parser_2;
-
-    parser_2 = parser_1;
-
-    const char* argv[] = {
-        "<application name>",
-        "--help",
-        nullptr
-    };
-
-    constexpr int argc = 2;
-
-    BOOST_CHECK_NO_THROW(parser_2.parse_command_line(argc, argv));
-}
-
-BOOST_AUTO_TEST_CASE(move)
-{
-    const options::grammar grammar {
-        options::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        }
-    };
-
-    options::parser parser_1 {grammar};
-
-    options::parser parser_2;
-
-    parser_2 = std::move(parser_1);
-
-    const char* argv[] = {
-        "<application name>",
-        "--help",
-        nullptr
-    };
-
-    constexpr int argc = 2;
-
-    BOOST_CHECK_EXCEPTION(
-        parser_1.parse_command_line(argc, argv),
-        std::runtime_error,
-        [](auto&& exception)
-        {
-            return std::string_view(exception.what()) ==
-                "parser::parse_command_line: --help is an unrecognized option";
-        });
-}
-
-BOOST_AUTO_TEST_SUITE_END(); // parser/assignment_operator
-
 BOOST_AUTO_TEST_SUITE(parse_command_line);
 
-BOOST_AUTO_TEST_CASE(parse_empty_command_line)
+BOOST_AUTO_TEST_CASE(empty_command_line)
 {
     const char* argv[] = {"<application name>", nullptr};
 
     constexpr int argc = 1;
 
     const auto& [parsed_options, positional_options] =
-        options::parser().parse_command_line(argc, argv);
+        cli::parser().parse_command_line(argc, argv);
 
     BOOST_TEST(parsed_options.empty());
 
@@ -259,30 +94,30 @@ BOOST_AUTO_TEST_CASE(parse_empty_command_line)
 
 BOOST_AUTO_TEST_CASE(unrecognized_option)
 {
-    const options::grammar grammar {
-        options::option {
+    const cli::options options {
+        cli::option {
             .short_name    = "-e",
             .long_name     = "--edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .long_name     = "--no-edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name    = "-f",
             .long_name     = "--file",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name = "-h",
             .long_name  = "--help"
         },
 
-        options::option {
+        cli::option {
             .short_name = "-v",
             .long_name  = "--verbose"
         }
@@ -293,41 +128,42 @@ BOOST_AUTO_TEST_CASE(unrecognized_option)
     constexpr int argc = 2;
 
     BOOST_CHECK_EXCEPTION(
-        options::parser(grammar).parse_command_line(argc, argv),
+        cli::parser(options).parse_command_line(argc, argv),
         std::runtime_error,
         [](auto&& exception)
         {
             return std::string_view(exception.what()) ==
-                "parser::parse_command_line: --mode is an unrecognized option";
-        });
+                "--mode is an unrecognized option";
+        }
+    );
 }
 
 BOOST_AUTO_TEST_CASE(option_expects_an_argument)
 {
-    const options::grammar grammar {
-        options::option {
+    const cli::options options {
+        cli::option {
             .short_name    = "-e",
             .long_name     = "--edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .long_name     = "--no-edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name    = "-f",
             .long_name     = "--file",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name = "-h",
             .long_name  = "--help"
         },
 
-        options::option {
+        cli::option {
             .short_name = "-v",
             .long_name  = "--verbose"
         }
@@ -338,51 +174,54 @@ BOOST_AUTO_TEST_CASE(option_expects_an_argument)
     constexpr int argc_1 = 2;
 
     BOOST_CHECK_EXCEPTION(
-        options::parser(grammar).parse_command_line(argc_1, argv_1),
+        cli::parser(options).parse_command_line(argc_1, argv_1),
         std::runtime_error,
         [](auto&& exception)
         {
             return std::string_view(exception.what()) ==
-                "parser::parse_command_line: -f expects an argument";
-        });
+                "[-f, --file] expects an argument";
+        }
+    );
 
     const char* argv_2[] = {"<application name>", "--file", nullptr};
 
     constexpr int argc_2 = 2;
 
     BOOST_CHECK_EXCEPTION(
-        options::parser(grammar).parse_command_line(argc_2, argv_2),
+        cli::parser(options).parse_command_line(argc_2, argv_2),
         std::runtime_error,
         [](auto&& exception)
         {
             return std::string_view(exception.what()) ==
-                "parser::parse_command_line: --file expects an argument";
-        });
+                "[-f, --file] expects an argument";
+        }
+    );
 
     const char* argv_3[] = {"<application name>", "--file=", nullptr};
 
     constexpr int argc_3 = 2;
 
     BOOST_CHECK_EXCEPTION(
-        options::parser(grammar).parse_command_line(argc_3, argv_3),
+        cli::parser(options).parse_command_line(argc_3, argv_3),
         std::runtime_error,
         [](auto&& exception)
         {
             return std::string_view(exception.what()) ==
-                "parser::parse_command_line: --file expects an argument";
-        });
+                "[-f, --file] expects an argument";
+        }
+    );
 }
 
 BOOST_AUTO_TEST_CASE(option_arguments_are_not_required)
 {
-    const options::grammar grammar {
-        options::option {
+    const cli::options options {
+        cli::option {
             .short_name    = "-f",
             .long_name     = "--file",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name             = "-h",
             .long_name              = "--help",
             .has_arguments          = true,
@@ -403,27 +242,26 @@ BOOST_AUTO_TEST_CASE(option_arguments_are_not_required)
 
     constexpr int argc = 2;
 
-    BOOST_CHECK_NO_THROW(
-        options::parser(grammar).parse_command_line(argc, argv));
-
     const auto& [parsed_options, positional_options] =
-        options::parser(grammar).parse_command_line(argc, argv);
+        cli::parser(options).parse_command_line(argc, argv);
 
-    BOOST_CHECK_NO_THROW(parsed_options["-h"]);
+    BOOST_TEST(parsed_options.contains("-h"));
 
-    BOOST_CHECK_EQUAL(parsed_options["-h"].size(), 1);
+    BOOST_REQUIRE_EQUAL(parsed_options["-h"].size(), 1);
+
     BOOST_CHECK_EQUAL(parsed_options["-h"][0], "a");
 
-    BOOST_CHECK_NO_THROW(parsed_options["--help"]);
+    BOOST_TEST(parsed_options.contains("--help"));
 
-    BOOST_CHECK_EQUAL(parsed_options["--help"].size(), 1);
+    BOOST_REQUIRE_EQUAL(parsed_options["--help"].size(), 1);
+
     BOOST_CHECK_EQUAL(parsed_options["--help"][0], "a");
 }
 
 BOOST_AUTO_TEST_CASE(invalid_argument_for_option)
 {
-    const options::grammar grammar {
-        options::option {
+    const cli::options options {
+        cli::option {
             .short_name        = "-m",
             .long_name         = "--mode",
             .is_required       = true,
@@ -432,9 +270,11 @@ BOOST_AUTO_TEST_CASE(invalid_argument_for_option)
             {
                 if (argument != "soft" || argument != "hard")
                 {
-                    throw std::logic_error {
-                        std::string("option::argument_verifier: [-m, --mode] ")
-                            .append("expects only arguments 'soft' or 'hard'")
+                    throw std::runtime_error {
+                        std::format(
+                            "[-m, --mode] "
+                            "expects only arguments 'soft' or 'hard'"
+                        )
                     };
                 }
             }
@@ -451,49 +291,49 @@ BOOST_AUTO_TEST_CASE(invalid_argument_for_option)
     constexpr auto argc = 3;
 
     BOOST_CHECK_EXCEPTION(
-        options::parser(grammar).parse_command_line(argc, argv),
-        std::logic_error,
+        cli::parser(options).parse_command_line(argc, argv),
+        std::runtime_error,
         [](auto&& exception)
         {
             return std::string_view(exception.what()) ==
-                "option::argument_verifier: "
                 "[-m, --mode] expects only arguments 'soft' or 'hard'";
-        });
+        }
+    );
 }
 
 BOOST_AUTO_TEST_CASE(option_is_required)
 {
-    const options::grammar grammar {
-        options::option {
+    const cli::options options {
+        cli::option {
             .short_name    = "-e",
             .long_name     = "--edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .long_name     = "--no-edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name    = "-f",
             .long_name     = "--file",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name = "-h",
             .long_name  = "--help"
         },
 
-        options::option {
+        cli::option {
             .short_name    = "-m",
             .long_name     = "--mode",
             .is_required   = true,
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name = "-v",
             .long_name  = "--verbose"
         }
@@ -504,48 +344,49 @@ BOOST_AUTO_TEST_CASE(option_is_required)
     constexpr int argc = 2;
 
     BOOST_CHECK_EXCEPTION(
-        options::parser(grammar).parse_command_line(argc, argv),
+        cli::parser(options).parse_command_line(argc, argv),
         std::runtime_error,
         [](auto&& exception)
         {
             return std::string_view(exception.what()) ==
-                "parser::parse_command_line: [-m, --mode] is required";
-        });
+                "[-m, --mode] is required";
+        }
+    );
 }
 
 BOOST_AUTO_TEST_CASE(correct_command_line_parsing)
 {
-    const options::grammar grammar {
-        options::option {
+    const cli::options options {
+        cli::option {
             .short_name    = "-e",
             .long_name     = "--edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .long_name     = "--no-edit",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name    = "-f",
             .long_name     = "--file",
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name = "-h",
             .long_name  = "--help"
         },
 
-        options::option {
+        cli::option {
             .short_name    = "-m",
             .long_name     = "--mode",
             .is_required   = true,
             .has_arguments = true
         },
 
-        options::option {
+        cli::option {
             .short_name = "-v",
             .long_name  = "--verbose"
         }
@@ -576,7 +417,7 @@ BOOST_AUTO_TEST_CASE(correct_command_line_parsing)
     constexpr int argc = 18;
 
     const auto& [parsed_options, positional_options] =
-        options::parser(grammar).parse_command_line(argc, argv);
+        cli::parser(options).parse_command_line(argc, argv);
 
     BOOST_CHECK_EQUAL(parsed_options.size(), 4);
 

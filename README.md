@@ -1,25 +1,25 @@
-# options
+# cli
 
 A lightweight C++ library for parsing command-line arguments with validation support and flexible configuration options.
 
-## Requirements
+## requirements
 
 + C++23 compatible compiler
 + CMake 3.11+
 
-## Build
+## build
 
 ```bash
-    git clone git@github.com:kcherno/options.git
+    git clone git@github.com:kcherno/cli.git
 
-    cd options
+    cd cli
 
     cmake -B build -S .
 
     cmake --build build
 ```
 
-## Quick start
+## quick start
 
 <details>
 
@@ -30,38 +30,38 @@ A lightweight C++ library for parsing command-line arguments with validation sup
 #include <iostream>
 #include <format>
 
-#include "options/options.hpp"
+#include "cli/options.hpp"
+#include "cli/option.hpp"
+#include "cli/parser.hpp"
 
 int main(int argc, char** argv)
 {
     try
     {
-        options::grammar main_options {
-            options::option 
-            {
+        cli::options options {
+            cli::option {
                 .short_name  = "-h",
-                .long_name   = "--help",
-                .description = "print help message"
+                .long_name   = "--help"
             }
         };
 
-        main_options.description("main options:");
+        options.description("<application-name> options:");
 
         const auto& [parsed_options, positional_options] =
-            options::parser(main_options).parse_command_line(argc, argv);
+            cli::parser(options).parse_command_line(argc, argv);
 
         if (parsed_options.contains("-h"))
         {
             std::cout << std::format(
-                "usage: {} [<options>] [<arguments>]\n\n", argv[0]);
+                "usage: <application-name> [<options>] [<arguments>]\n\n");
 
-            std::cout << main_options << std::endl;
+            std::cout << options;
         }
     }
 
     catch (const std::exception& exception)
     {
-        std::cerr << exception.what() << std::endl;
+        std::cerr << std::format("<application-name>: {}\n", exception.what());
 
         return 1;
     }
@@ -72,59 +72,60 @@ int main(int argc, char** argv)
 
 <details>
 
-<summary>options with arguments</summary>
+<summary>option with arguments</summary>
 
 ```c++
 #include <exception>
 #include <iostream>
 #include <format>
 
-#include "options/options.hpp"
+#include "cli/options.hpp"
+#include "cli/option.hpp"
+#include "cli/parser.hpp"
 
 int main(int argc, char** argv)
 {
     try
     {
-        options::grammar main_options {
-            options::option {
+        cli::options options {
+            cli::option {
                 .short_name    = "-e",
                 .long_name     = "--edit",
                 .description   = "edit the file",
                 .has_arguments = true
             },
 
-            options::option {
+            cli::option {
                 .long_name     = "--no-edit",
                 .description   = "do not edit the file",
                 .has_arguments = true
             },
 
-            options::option {
+            cli::option {
                 .short_name    = "-f",
                 .long_name     = "--file",
                 .description   = "add input file",
                 .has_arguments = true
             },
 
-            options::option 
-            {
+            cli::option {
                 .short_name  = "-h",
                 .long_name   = "--help",
                 .description = "print help message"
             }
         };
 
-        main_options.description("main options:");
+        options.description("<application-name> options:");
 
         const auto& [parsed_options, positional_options] =
-            options::parser(main_options).parse_command_line(argc, argv);
+            cli::parser(options).parse_command_line(argc, argv);
 
         if (parsed_options.contains("-h"))
         {
             std::cout << std::format(
-                "usage: {} [<options>] [<arguments>]\n\n", argv[0]);
+                "usage: <application-name> [<options>] [<arguments>]\n\n");
 
-            std::cout << main_options << std::endl;
+            std::cout << options;
         }
 
         else
@@ -135,7 +136,7 @@ int main(int argc, char** argv)
 
     catch (const std::exception& exception)
     {
-        std::cerr << exception.what() << std::endl;
+        std::cerr << std::format("<application-name>: {}\n", exception.what());
 
         return 1;
     }
@@ -155,7 +156,9 @@ int main(int argc, char** argv)
 #include <iostream>
 #include <format>
 
-#include "options/options.hpp"
+#include "cli/options.hpp"
+#include "cli/option.hpp"
+#include "cli/parser.hpp"
 
 int main(int argc, char** argv)
 {
@@ -166,15 +169,13 @@ int main(int argc, char** argv)
             if (not std::filesystem::exists(filename))
             {
                 throw std::runtime_error {
-                    std::format(
-                        "option::argument_verifier: the {} file doesn't exist",
-                        filename)
+                    std::format("{} does not exist", filename)
                 };
             }
         };
 
-        options::grammar main_options {
-            options::option {
+        cli::options options {
+            cli::option {
                 .short_name        = "-e",
                 .long_name         = "--edit",
                 .description       = "edit the file",
@@ -182,14 +183,14 @@ int main(int argc, char** argv)
                 .argument_verifier = does_file_exist
             },
 
-            options::option {
+            cli::option {
                 .long_name         = "--no-edit",
                 .description       = "do not edit the file",
                 .has_arguments     = true,
                 .argument_verifier = does_file_exist
             },
 
-            options::option {
+            cli::option {
                 .short_name        = "-f",
                 .long_name         = "--file",
                 .description       = "add input file",
@@ -197,7 +198,7 @@ int main(int argc, char** argv)
                 .argument_verifier = does_file_exist
             },
 
-            options::option 
+            cli::option 
             {
                 .short_name  = "-h",
                 .long_name   = "--help",
@@ -205,17 +206,17 @@ int main(int argc, char** argv)
             }
         };
 
-        main_options.description("main options:");
+        options.description("<application-name> options:");
 
         const auto& [parsed_options, positional_options] =
-            options::parser(main_options).parse_command_line(argc, argv);
+            cli::parser(options).parse_command_line(argc, argv);
 
         if (parsed_options.contains("-h"))
         {
             std::cout << std::format(
-                "usage: {} [<options>] [<arguments>]\n\n", argv[0]);
+                "usage: <application-name> [<options>] [<arguments>]\n\n");
 
-            std::cout << main_options << std::endl;
+            std::cout << options;
         }
 
         else
@@ -226,7 +227,7 @@ int main(int argc, char** argv)
 
     catch (const std::exception& exception)
     {
-        std::cerr << exception.what() << std::endl;
+        std::cerr << std::format("<application-name>: {}\n", exception.what());
 
         return 1;
     }
@@ -237,24 +238,26 @@ int main(int argc, char** argv)
 
 <details>
 
-<summary>multiple grammars</summary>
+<summary>multiple options</summary>
 
 ```c++
+#include <string_view>
 #include <filesystem>
 #include <exception>
 #include <stdexcept>
 #include <iostream>
 #include <format>
 
-#include "options/options.hpp"
+#include "cli/options.hpp"
+#include "cli/option.hpp"
+#include "cli/parser.hpp"
 
 int main(int argc, char** argv)
 {
     try
     {
-        options::grammar main_options {
-            options::option 
-            {
+        cli::options options {
+            cli::option {
                 .short_name             = "-h",
                 .long_name              = "--help",
                 .description            = "print help message",
@@ -266,7 +269,6 @@ int main(int argc, char** argv)
                     {
                         throw std::runtime_error {
                             std::format(
-                                "option::argument_verifier: "
                                 "the {} is an invalid option group name\n"
                                 "\n"
                                 "list of options group:\n"
@@ -280,22 +282,20 @@ int main(int argc, char** argv)
             }
         };
 
-        main_options.description("main options:");
+        options.description("<appication-name> options:");
 
         constexpr auto does_file_exist = [](std::string_view filename)
         {
             if (not std::filesystem::exists(filename))
             {
                 throw std::runtime_error {
-                    std::format(
-                        "option::argument_verifier: the {} file doesn't exist",
-                        filename)
+                    std::format("{} file does not exist", filename)
                 };
             }
         };
 
-        options::grammar filesystem_options {
-            options::option {
+        cli::options filesystem_options {
+            cli::option {
                 .short_name        = "-e",
                 .long_name         = "--edit",
                 .description       = "edit the file",
@@ -303,14 +303,14 @@ int main(int argc, char** argv)
                 .argument_verifier = does_file_exist
             },
 
-            options::option {
+            cli::option {
                 .long_name         = "--no-edit",
                 .description       = "do not edit the file",
                 .has_arguments     = true,
                 .argument_verifier = does_file_exist
             },
 
-            options::option {
+            cli::option {
                 .short_name        = "-f",
                 .long_name         = "--file",
                 .description       = "add input file",
@@ -322,7 +322,7 @@ int main(int argc, char** argv)
         filesystem_options.description("filesystem options:");
 
         const auto& [parsed_options, positional_options] =
-            options::parser({main_options, filesystem_options})
+            cli::parser({options, filesystem_options})
                 .parse_command_line(argc, argv);
 
         if (parsed_options.contains("-h"))
@@ -332,11 +332,11 @@ int main(int argc, char** argv)
             if (arguments.empty())
             {
                 std::cout << std::format(
-                    "usage: {} [<options>] [<arguments>]\n\n", argv[0]);
+                    "usage: <application-name> [<options>] [<arguments>]\n\n");
                 
-                std::cout << main_options << '\n'
+                std::cout << options
                           << '\n'
-                          << filesystem_options << '\n'
+                          << filesystem_options
                           << '\n'
                           << "try using <help> followed by the name of "
                              "an option group to display only the options "
@@ -346,7 +346,7 @@ int main(int argc, char** argv)
 
             else if (arguments.front() == "filesystem")
             {
-                std::cout << filesystem_options << std::endl;
+                std::cout << filesystem_options;
             }
         }
 
@@ -358,7 +358,7 @@ int main(int argc, char** argv)
 
     catch (const std::exception& exception)
     {
-        std::cerr << exception.what() << std::endl;
+        std::cerr << std::format("<application-name>: {}\n", exception.what());
 
         return 1;
     }
@@ -369,15 +369,15 @@ int main(int argc, char** argv)
 
 ## API documentation
 
-### options::option
+### cli::option
 
-#### Types
+#### types
 
 | Type | Definition |
 | --- | --- |
 | `verifier_type` | `void(*)(std::string_view)` |
 
-#### Data members
+#### data members
 
 | Member | Type | Default initialization | Semantics |
 | --- | :---: | :---: | --- |
@@ -392,17 +392,17 @@ int main(int argc, char** argv)
 > [!TIP]
 > *There is no need to initialize all fields. Use only what you need.*
 
-#### Member functions
+#### member functions
 
 | Expression | Return type | Semantics |
 | --- | :---: | --- |
 | `representation()` | `std::string` | Returns the option representation for output, e.g., `-f, --file` |
 
-### options::grammar
+### cli::options
 
-#### Static data members
+#### static data members
 
-Specifies the number of spaces on the left when outputting grammar.
+Specifies the number of spaces on the left when outputting options.
 
 ```c++
     `inline static constinit std::size_t` left_indent = 4;
@@ -413,26 +413,26 @@ Specifies the number of spaces on the left when outputting grammar.
 ```c++
     ...
 
-    grammar.left_indent = 0;
+    cli::options::left_indent = 0;
 
-    std::cout << grammar << std::endl;
+    std::cout << options;
 
-    // main options
+    // <application-name> options:
     //
     // -h, --help print help message
 
-    grammar.left_indent = 10;
+    cli::options::left_indent = 10;
 
-    std::cout << grammar << std::endl;
+    std::cout << options;
 
-    // main options
+    // <application-name> options:
     //
     //           -h, --help print help message
 
     ...
 ```
 
-Specifies the number of new lines after the description when outputting grammar.
+Specifies the number of new lines after the description when outputting options.
 
 ```c++
     `inline static constinit std::size_t` vertical_gap = 1;
@@ -443,18 +443,18 @@ Specifies the number of new lines after the description when outputting grammar.
 ```c++
     ...
 
-    grammar.vertical_gap = 0;
+    cli::options::vertical_gap = 0;
 
-    std::cout << grammar << std::endl;
+    std::cout << options;
 
-    // main options
+    // <application-name> options:
     //     -h, --help print help message
 
-    grammar.vertical_gap = 5;
+    cli::options::vertical_gap = 5;
 
-    std::cout << grammar << std::endl;
+    std::cout << options;
 
-    // main options
+    // <application-name> options:
     //
     //
     //
@@ -465,54 +465,59 @@ Specifies the number of new lines after the description when outputting grammar.
     ...
 ```
 
-#### Member functions
+#### member functions
 
 | Expression | Return Type | Semantics |
 | --- | :---: | --- |
-| `grammar()` | `grammar` | Default constructor. `grammar.empty()` is `true` |
-| `grammar(std::string_view)` | `grammar` | Sets a description for a group of options. `grammar.empty()` is `true` |
-| `grammar(std::initializer_list<option>)` | `grammar` | Initialize the grammar with a list of options |
-| `grammar(const grammar&)` | `grammar` | Copy constructor |
-| `grammar(grammar&&)` | `grammar` | Move constructor |
-| `operator=(const grammar&)` | `grammar&` | Copy assignment operator |
-| `operator=(grammar&&)` | `grammar&` | Move assignment operator |
-| `add_option(const option&)` | `void` | Add the option to the grammar |
+| `options()` | `options` | Default constructor. `options.empty()` is `true` |
+| `options(std::string_view)` | `options` | Sets a description for a group of options. `options.empty()` is `true` |
+| `options(std::initializer_list<option>)` | `options` | Initialize the options with a list of options |
+| `options(const options&)` | `options` | Copy constructor |
+| `options(options&&)` | `options` | Move constructor |
+| `operator=(const options&)` | `options&` | Copy assignment operator |
+| `operator=(options&&)` | `options&` | Move assignment operator |
+| `add_option(const option&)` | `void` | Add the option to the options |
 | `contains(std::string_view)` | `bool` | Checks whether an option is contained by short or long name |
 | `description()` | `std::string_view` | Returns a description of a group of options |
 | `description(std::string_view)` | `void` | Sets a new description for a group of options |
-| `[static] verify(std::string_view)` | `void` | Verifies if the name matches the short or long option name pattern |
 | `operator[](std::string_view)` | `const option&` | Returns a const reference to the option by its name |
 
-### options::parser
+### cli::parser
 
-#### Types
+#### types
 
 | Type | Definition |
 | --- | --- |
-| `parsed_options` | See below |
-| `positional_options` | `std::vector<std::string_view>` |
+| `pair` | `std::pair<parsed_options, positional_options>` |
 
-#### Member functions
+#### member functions
 
 | Expression | Return type | Semantics |
 | --- | :---: | --- |
 | `parser()` | `parser` | Default constructor |
-| `parser(const grammar&)` | `parser` | Initialize the parser with the grammar |
-| `parser(std::initializer_list<grammar>)` | `parser` | Initialize the parser with a list of grammars |
+| `parser(const options&)` | `parser` | Initialize the parser with the options |
+| `parser(std::initializer_list<options>)` | `parser` | Initialize the parser with a list of optionss |
 | `parser(const parser&)` | `parser` | Copy constructor |
 | `parser(parser&&)` | `parser` | Move constructor |
 | `operator=(const parser&)` | `parser&` | Copy assignment operator |
 | `operator=(parser&&)` | `parser&` | Move assignment operator |
-| `parse_command_line(int, char**)` | `std::pair<parsed_options, positional_options>` | Parses command line and returns parsed options and positional options |
-| `parse_command_line(int, const char**)` | `std::pair<parsed_options, positional_options>` | Parses command line and returns parsed options and positional options |
+| `parse_command_line(int, char**)` | `parser::pair` | Parses command line and returns parsed options and positional options |
+| `parse_command_line(int, const char**)` | `parser::pair` | Parses command line and returns parsed options and positional options |
 
-### options::parser::parsed_options
+### cli::parsed_options
 
-#### Member functions
+#### types
+
+| Type | Definition |
+| --- | --- |
+| `vector` | `std::vector<std::string_view>` |
+
+#### member functions
 
 | Expression | Return type | Semantics |
 | --- | :---: | --- |
+| `parsed_options()` | `parsed_options` | Default constructor |
 | `parsed_options(parsed_options&&)` | `parsed_options` | Move constructor |
 | `operator=(parsed_options&&)` | `parsed_options` | Move assignment operator |
 | `contains(std::string_view)` | `bool` | Checks whether an option is contained by short or long name |
-| `operator[](std::string_view)` | `const std::vector<std::string_view>&` | Returns a list of arguments for the option |
+| `operator[](std::string_view)` | `const parsed_options::vector&` | Returns a list of arguments for the option |

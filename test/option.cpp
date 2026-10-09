@@ -4,7 +4,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "options/option.hpp"
+#include "option.hpp"
 
 BOOST_AUTO_TEST_SUITE(option);
 
@@ -12,12 +12,12 @@ BOOST_AUTO_TEST_SUITE(representation);
 
 BOOST_AUTO_TEST_CASE(no_names)
 {
-    BOOST_TEST(options::option().representation().empty());
+    BOOST_TEST(cli::option().representation().empty());
 }
 
 BOOST_AUTO_TEST_CASE(only_short_name)
 {
-    const options::option help {
+    const cli::option help {
         .short_name    = "-h",
         .long_name     = {},
         .description   = {},
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(only_short_name)
 
 BOOST_AUTO_TEST_CASE(only_long_name)
 {
-    const options::option help {
+    const cli::option help {
         .short_name    = {},
         .long_name     = "--help",
         .description   = {},
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(only_long_name)
 
 BOOST_AUTO_TEST_CASE(both_names)
 {
-    const options::option help {
+    const cli::option help {
         .short_name    = "-h",
         .long_name     = "--help",
         .description   = {},

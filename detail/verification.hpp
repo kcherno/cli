@@ -4,10 +4,16 @@
 
 #include <cctype>
 
-namespace options
+#include "option.hpp"
+
+namespace cli::detail
 {
+    bool is_long_option_name(std::string_view) noexcept;
+
     inline constexpr bool is_short_option_name(std::string_view name) noexcept
     {
         return name.size() == 2 && name[0] == '-' && std::isalnum(name[1]);
     }
+
+    void verify(const option&);
 }
