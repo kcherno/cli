@@ -1,6 +1,7 @@
 #include <string_view>
 #include <algorithm>
 #include <stdexcept>
+#include <format>
 
 #include <cctype>
 
@@ -45,7 +46,7 @@ void cli::detail::verify(const option& option)
             };
         }
     }
-    
+
     if (not option.long_name.empty())
     {
         if (not is_long_option_name(option.long_name))
@@ -55,5 +56,15 @@ void cli::detail::verify(const option& option)
                 "^--[a-zA-Z0-9][-a-zA-Z0-9]*[a-zA-Z0-9]$"
             };
         }
+    }
+
+    if (option.has_arguments && option.maximum_number_of_arguments == 0)
+    {
+        throw std::logic_error {
+            std::format(
+                "[{}] has arguments, but maximum number of arguments is 0",
+                option.representation()
+            )
+        };
     }
 }

@@ -16,7 +16,7 @@ namespace
     inline constexpr bool is_long_option_name_with_argument(
         std::string_view name) noexcept
     {
-        if (auto position = name.find('='); position != name.npos)
+        if (const auto position = name.find('='); position != name.npos)
         {
             return cli::detail::is_long_option_name(name.substr(0, position));
         }
@@ -115,7 +115,23 @@ cli::parser::parse_command_line(int argc, const char** argv) const
 
             if (not argument.empty())
             {
-                parsed_options[option].push_back(argument);
+                if (parsed_options[option].size() <
+                        opt.maximum_number_of_arguments)
+                {
+                    parsed_options[option].push_back(argument);
+                }
+
+                else
+                {
+                    throw std::runtime_error {
+                        std::format(
+                            "[{}] too many arguments, "
+                            "maximum number of arguments is {}",
+                            opt.representation(),
+                            opt.maximum_number_of_arguments
+                        )
+                    };
+                }
             }
         }
 
@@ -142,7 +158,6 @@ cli::parser::parse_command_line(int argc, const char** argv) const
     });
 
     return std::pair {
-        std::move(parsed_options),
-        std::move(positional_options)
+        std::move(parsed_options), std::move(positional_options)
     };
 }

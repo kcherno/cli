@@ -387,6 +387,7 @@ int main(int argc, char** argv)
 | `is_required` | `bool` | `false` | Specifies whether the option must be present in the command line |
 | `has_arguments` | `bool` | `false` | Specifies whether the option has arguments |
 | `are_arguments_required` | `bool` | `true` | Specifies whether the option must receive an argument on the command line |
+| `maximum_number_of_arguments` | `unsigned int` | `0 or std::numeric_limits<unsigned int>::max()` | Specifies the maximum number of the option arguments |
 | `argument_verifier` | `verifier_type` | `nullptr` | Function to validate a command line argument. ***The function must throw an exception on validation failure*** |
 
 > [!TIP]

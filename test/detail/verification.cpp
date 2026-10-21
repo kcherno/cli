@@ -2,9 +2,14 @@
 
 #define BOOST_TEST_DYN_LINK
 
+#include <exception>
+#include <stdexcept>
+
 #include "boost/test/unit_test.hpp"
 
 #include "detail/verification.hpp"
+
+#include "option.hpp"
 
 BOOST_AUTO_TEST_SUITE(verification);
 
@@ -125,5 +130,30 @@ BOOST_AUTO_TEST_SUITE_END();
 // verification/is_long_option_name/valid_long_option_name
 
 BOOST_AUTO_TEST_SUITE_END(); // verification/is_long_option_name
+
+BOOST_AUTO_TEST_SUITE(verify);
+
+BOOST_AUTO_TEST_CASE(option_has_arguments_but_maximum_number_is_0)
+{
+    const cli::option option {
+        .short_name                  = "-f",
+        .long_name                   = "--file",
+        .has_arguments               = true,
+        .maximum_number_of_arguments = 0
+    };
+
+    BOOST_CHECK_EXCEPTION(
+        cli::detail::verify(option),
+        std::logic_error,
+        [](const std::exception& exception)
+        {
+            return std::string_view(exception.what()) ==
+                "[-f, --file] has arguments, but "
+                "maximum number of arguments is 0";
+        }
+    );
+}
+
+BOOST_AUTO_TEST_SUITE_END(); // verification/verify
 
 BOOST_AUTO_TEST_SUITE_END(); // verification

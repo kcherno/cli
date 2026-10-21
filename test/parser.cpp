@@ -3,6 +3,7 @@
 #define BOOST_TEST_DYN_LINK
 
 #include <string_view>
+#include <exception>
 #include <stdexcept>
 #include <format>
 #include <string>
@@ -297,6 +298,35 @@ BOOST_AUTO_TEST_CASE(invalid_argument_for_option)
         {
             return std::string_view(exception.what()) ==
                 "[-m, --mode] expects only arguments 'soft' or 'hard'";
+        }
+    );
+}
+
+BOOST_AUTO_TEST_CASE(too_many_arguments_for_option)
+{
+    const cli::options options {
+        cli::option {
+            .short_name                  = "-f",
+            .long_name                   = "--file",
+            .has_arguments               = true,
+            .maximum_number_of_arguments = 1
+        }
+    };
+
+    const char* argv[] = {
+        "<application-name>", "--file=file_1.txt", "--file=file_2.txt", nullptr
+    };
+
+    constexpr int argc = 3;
+
+    BOOST_CHECK_EXCEPTION(
+        cli::parser(options).parse_command_line(argc, argv),
+        std::runtime_error,
+        [](const std::exception& exception)
+        {
+            return std::string_view(exception.what()) ==
+                "[-f, --file] too many arguments, "
+                "maximum number of arguments is 1";
         }
     );
 }
