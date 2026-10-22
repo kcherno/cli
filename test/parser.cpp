@@ -29,9 +29,12 @@ BOOST_AUTO_TEST_CASE(parameterized_constructor)
 {
     const cli::parser parser {
         cli::options {
-            cli::option {
-                .short_name = "-h",
-                .long_name  = "--help"
+            "<application-name> options:", {
+                cli::option {
+                    .short_name  = "-h",
+                    .long_name   = "--help",
+                    .description = "print help message"
+                }
             }
         }
     };
@@ -43,9 +46,12 @@ BOOST_AUTO_TEST_CASE(copy_constructor)
 {
     const cli::parser parser_1 {
         cli::options {
-            cli::option {
-                .short_name = "-h",
-                .long_name  = "--help"
+            "<application-name> options:", {
+                cli::option {
+                    .short_name  = "-h",
+                    .long_name   = "--help",
+                    .description = "print help message"
+                }
             }
         }
     };
@@ -61,9 +67,12 @@ BOOST_AUTO_TEST_CASE(move_constructor)
 {
     cli::parser parser_1 {
         cli::options {
-            cli::option {
-                .short_name = "-h",
-                .long_name  = "--help"
+            "<application-name> options:", {
+                cli::option {
+                    .short_name  = "-h",
+                    .long_name   = "--help",
+                    .description = "print help message"
+                }
             }
         }
     };
@@ -81,7 +90,7 @@ BOOST_AUTO_TEST_SUITE(parse_command_line);
 
 BOOST_AUTO_TEST_CASE(empty_command_line)
 {
-    const char* argv[] = {"<application name>", nullptr};
+    const char* argv[] = {"<application-name>", nullptr};
 
     constexpr int argc = 1;
 
@@ -96,31 +105,34 @@ BOOST_AUTO_TEST_CASE(empty_command_line)
 BOOST_AUTO_TEST_CASE(unrecognized_option)
 {
     const cli::options options {
-        cli::option {
-            .short_name    = "-e",
-            .long_name     = "--edit",
-            .has_arguments = true
-        },
+        "<application-name> options:", {
+            cli::option {
+                .short_name    = "-e",
+                .long_name     = "--edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .long_name     = "--no-edit",
-            .has_arguments = true
-        },
+            cli::option {
+                .long_name     = "--no-edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name    = "-f",
-            .long_name     = "--file",
-            .has_arguments = true
-        },
+            cli::option {
+                .short_name    = "-f",
+                .long_name     = "--file",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name = "-v",
-            .long_name  = "--verbose"
+            cli::option {
+                .short_name = "-v",
+                .long_name  = "--verbose"
+            }
         }
     };
 
@@ -142,35 +154,38 @@ BOOST_AUTO_TEST_CASE(unrecognized_option)
 BOOST_AUTO_TEST_CASE(option_expects_an_argument)
 {
     const cli::options options {
-        cli::option {
-            .short_name    = "-e",
-            .long_name     = "--edit",
-            .has_arguments = true
-        },
+        "<application-name> options:", {
+            cli::option {
+                .short_name    = "-e",
+                .long_name     = "--edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .long_name     = "--no-edit",
-            .has_arguments = true
-        },
+            cli::option {
+                .long_name     = "--no-edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name    = "-f",
-            .long_name     = "--file",
-            .has_arguments = true
-        },
+            cli::option {
+                .short_name    = "-f",
+                .long_name     = "--file",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name = "-v",
-            .long_name  = "--verbose"
+            cli::option {
+                .short_name = "-v",
+                .long_name  = "--verbose"
+            }
         }
     };
 
-    const char* argv_1[] = {"<application name>", "-f", nullptr};
+    const char* argv_1[] = {"<application-name>", "-f", nullptr};
 
     constexpr int argc_1 = 2;
 
@@ -184,7 +199,7 @@ BOOST_AUTO_TEST_CASE(option_expects_an_argument)
         }
     );
 
-    const char* argv_2[] = {"<application name>", "--file", nullptr};
+    const char* argv_2[] = {"<application-name>", "--file", nullptr};
 
     constexpr int argc_2 = 2;
 
@@ -198,7 +213,7 @@ BOOST_AUTO_TEST_CASE(option_expects_an_argument)
         }
     );
 
-    const char* argv_3[] = {"<application name>", "--file=", nullptr};
+    const char* argv_3[] = {"<application-name>", "--file=", nullptr};
 
     constexpr int argc_3 = 2;
 
@@ -216,22 +231,25 @@ BOOST_AUTO_TEST_CASE(option_expects_an_argument)
 BOOST_AUTO_TEST_CASE(option_arguments_are_not_required)
 {
     const cli::options options {
-        cli::option {
-            .short_name    = "-f",
-            .long_name     = "--file",
-            .has_arguments = true
-        },
+        "<application-name> options:", {
+            cli::option {
+                .short_name    = "-f",
+                .long_name     = "--file",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name             = "-h",
-            .long_name              = "--help",
-            .has_arguments          = true,
-            .are_arguments_required = false
+            cli::option {
+                .short_name             = "-h",
+                .long_name              = "--help",
+                .description            = "print help message",
+                .has_arguments          = true,
+                .are_arguments_required = false
+            }
         }
     };
 
     const char* argv[] = {
-        "<application name>",
+        "<application-name>",
         "--help",
         "a",
         "-f",
@@ -262,32 +280,29 @@ BOOST_AUTO_TEST_CASE(option_arguments_are_not_required)
 BOOST_AUTO_TEST_CASE(invalid_argument_for_option)
 {
     const cli::options options {
-        cli::option {
-            .short_name        = "-m",
-            .long_name         = "--mode",
-            .is_required       = true,
-            .has_arguments     = true,
-            .argument_verifier = [](std::string_view argument)
-            {
-                if (argument != "soft" || argument != "hard")
+        "<application-name> options:", {
+            cli::option {
+                .short_name        = "-m",
+                .long_name         = "--mode",
+                .is_required       = true,
+                .has_arguments     = true,
+                .argument_verifier = [](std::string_view argument)
                 {
-                    throw std::runtime_error {
-                        std::format(
-                            "[-m, --mode] "
-                            "expects only arguments 'soft' or 'hard'"
-                        )
-                    };
+                    if (argument != "soft" || argument != "hard")
+                    {
+                        throw std::runtime_error {
+                            std::format(
+                                "[-m, --mode] "
+                                "expects only arguments 'soft' or 'hard'"
+                            )
+                        };
+                    }
                 }
             }
         }
     };
 
-    const char* argv[] = {
-        "<application name>",
-        "-m",
-        "cool",
-        nullptr
-    };
+    const char* argv[] = {"<application-name>", "-m", "cool", nullptr};
 
     constexpr auto argc = 3;
 
@@ -305,11 +320,13 @@ BOOST_AUTO_TEST_CASE(invalid_argument_for_option)
 BOOST_AUTO_TEST_CASE(too_many_arguments_for_option)
 {
     const cli::options options {
-        cli::option {
-            .short_name                  = "-f",
-            .long_name                   = "--file",
-            .has_arguments               = true,
-            .maximum_number_of_arguments = 1
+        "<application-name> options:", {
+            cli::option {
+                .short_name                  = "-f",
+                .long_name                   = "--file",
+                .has_arguments               = true,
+                .maximum_number_of_arguments = 1
+            }
         }
     };
 
@@ -334,42 +351,45 @@ BOOST_AUTO_TEST_CASE(too_many_arguments_for_option)
 BOOST_AUTO_TEST_CASE(option_is_required)
 {
     const cli::options options {
-        cli::option {
-            .short_name    = "-e",
-            .long_name     = "--edit",
-            .has_arguments = true
-        },
+        "<application-name> options:", {
+            cli::option {
+                .short_name    = "-e",
+                .long_name     = "--edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .long_name     = "--no-edit",
-            .has_arguments = true
-        },
+            cli::option {
+                .long_name     = "--no-edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name    = "-f",
-            .long_name     = "--file",
-            .has_arguments = true
-        },
+            cli::option {
+                .short_name    = "-f",
+                .long_name     = "--file",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name    = "-m",
-            .long_name     = "--mode",
-            .is_required   = true,
-            .has_arguments = true
-        },
+            cli::option {
+                .short_name    = "-m",
+                .long_name     = "--mode",
+                .is_required   = true,
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name = "-v",
-            .long_name  = "--verbose"
+            cli::option {
+                .short_name = "-v",
+                .long_name  = "--verbose"
+            }
         }
     };
 
-    const char* argv[] = {"<application name>", "--verbose", nullptr};
+    const char* argv[] = {"<application-name>", "--verbose", nullptr};
 
     constexpr int argc = 2;
 
@@ -387,43 +407,46 @@ BOOST_AUTO_TEST_CASE(option_is_required)
 BOOST_AUTO_TEST_CASE(correct_command_line_parsing)
 {
     const cli::options options {
-        cli::option {
-            .short_name    = "-e",
-            .long_name     = "--edit",
-            .has_arguments = true
-        },
+        "<applicatio-name> options:", {
+            cli::option {
+                .short_name    = "-e",
+                .long_name     = "--edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .long_name     = "--no-edit",
-            .has_arguments = true
-        },
+            cli::option {
+                .long_name     = "--no-edit",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name    = "-f",
-            .long_name     = "--file",
-            .has_arguments = true
-        },
+            cli::option {
+                .short_name    = "-f",
+                .long_name     = "--file",
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name = "-h",
-            .long_name  = "--help"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name    = "-m",
-            .long_name     = "--mode",
-            .is_required   = true,
-            .has_arguments = true
-        },
+            cli::option {
+                .short_name    = "-m",
+                .long_name     = "--mode",
+                .is_required   = true,
+                .has_arguments = true
+            },
 
-        cli::option {
-            .short_name = "-v",
-            .long_name  = "--verbose"
+            cli::option {
+                .short_name = "-v",
+                .long_name  = "--verbose"
+            }
         }
     };
 
     const char* argv[] = {
-        "<application name>",
+        "<application-name>",
         "--mode=soft",
         "file_1.txt",
         "-e",

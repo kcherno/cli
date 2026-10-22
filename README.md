@@ -401,12 +401,18 @@ int main(int argc, char** argv)
 
 ### cli::options
 
-#### static data members
+#### data members
+
+Specifies a description for an option group.
+
+```c++
+    std::string description;
+```
 
 Specifies the number of spaces on the left when outputting options.
 
 ```c++
-    `inline static constinit std::size_t` left_indent = 4;
+    unsigned int description_left_indent;
 ```
 
 **Example:**
@@ -414,7 +420,15 @@ Specifies the number of spaces on the left when outputting options.
 ```c++
     ...
 
-    cli::options::left_indent = 0;
+    cli::options::options {
+        "<application-name> options:", {
+            ...
+        }
+    };
+
+    ...
+
+    options.description_left_indent = 0;
 
     std::cout << options;
 
@@ -422,7 +436,7 @@ Specifies the number of spaces on the left when outputting options.
     //
     // -h, --help print help message
 
-    cli::options::left_indent = 10;
+    options.description_left_indent = 10;
 
     std::cout << options;
 
@@ -433,10 +447,10 @@ Specifies the number of spaces on the left when outputting options.
     ...
 ```
 
-Specifies the number of new lines after the description when outputting options.
+Specifies the number of new lines when outputting options after the header.
 
 ```c++
-    `inline static constinit std::size_t` vertical_gap = 1;
+    unsigned int description_vertical_gap;
 ```
 
 **Example:**
@@ -444,14 +458,20 @@ Specifies the number of new lines after the description when outputting options.
 ```c++
     ...
 
-    cli::options::vertical_gap = 0;
+    cli::options::options {
+        "<application-name> options:", {
+            ...
+        }
+    };
+
+    options.description_vertical_gap = 0;
 
     std::cout << options;
 
     // <application-name> options:
     //     -h, --help print help message
 
-    cli::options::vertical_gap = 5;
+    options.description_vertical_gap = 5;
 
     std::cout << options;
 
@@ -466,21 +486,32 @@ Specifies the number of new lines after the description when outputting options.
     ...
 ```
 
+#### static data members
+
+By default, sets the number of spaces on the left when outputting options.
+
+```c++
+    `static constexpr unsigned int` default_description_left_indent = 4;
+```
+
+By default, sets the number of new lines after the description when outputting options.
+
+```c++
+    `static constexpr unsigned int` default_description_vertical_gap = 1;
+```
+
 #### member functions
 
 | Expression | Return Type | Semantics |
 | --- | :---: | --- |
-| `options()` | `options` | Default constructor. `options.empty()` is `true` |
-| `options(std::string_view)` | `options` | Sets a description for a group of options. `options.empty()` is `true` |
-| `options(std::initializer_list<option>)` | `options` | Initialize the options with a list of options |
+| `options()` | `options` | Default constructor, `description.empty()` is `true`, `description_left_indent` is equal `default_description_left_indent`, `description_vertical_gap` is equal `default_description_vertical_gap`, `options.empty()` is `true` |
+| `options(std::string_view, std::initializer_list<option>)` | `options` | Specifies a description for an option group and initialize it using an initializer list. |
 | `options(const options&)` | `options` | Copy constructor |
 | `options(options&&)` | `options` | Move constructor |
 | `operator=(const options&)` | `options&` | Copy assignment operator |
 | `operator=(options&&)` | `options&` | Move assignment operator |
 | `add_option(const option&)` | `void` | Add the option to the options |
 | `contains(std::string_view)` | `bool` | Checks whether an option is contained by short or long name |
-| `description()` | `std::string_view` | Returns a description of a group of options |
-| `description(std::string_view)` | `void` | Sets a new description for a group of options |
 | `operator[](std::string_view)` | `const option&` | Returns a const reference to the option by its name |
 
 ### cli::parser

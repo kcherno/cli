@@ -19,18 +19,37 @@ namespace cli
     {
     public:
 
-        using list = std::list<option>;
+        struct detail final
+        {
+            using list          = std::list<option>;
 
-        using unordered_map =
-            std::unordered_map<std::string_view, list::const_iterator>;
+            using unordered_map =
+                std::unordered_map<std::string_view, list::const_iterator>;
 
-        options() = default;
+            detail() = delete;
+        };
 
-        options(std::string_view description) :
-            description_ {description}
+        std::string  description;
+        unsigned int description_left_indent;
+        unsigned int description_vertical_gap;
+
+        static constexpr unsigned int default_description_left_indent  = 4;
+        static constexpr unsigned int default_description_vertical_gap = 1;
+
+        options() :
+            description              {},
+            description_left_indent  {default_description_left_indent},
+            description_vertical_gap {default_description_vertical_gap},
+            list_                    {},
+            unordered_map_           {}
         {}
 
-        options(std::initializer_list<option> initializer_list)
+        options(
+            std::string_view              description,
+            std::initializer_list<option> initializer_list)
+                : description              {description},
+                  description_left_indent  {default_description_left_indent},
+                  description_vertical_gap {default_description_vertical_gap}
         {
             for (auto&& option : initializer_list)
             {
@@ -39,7 +58,9 @@ namespace cli
         }
 
         options(const options& other) :
-            description_ {other.description_}
+            description              {other.description},
+            description_left_indent  {other.description_left_indent},
+            description_vertical_gap {other.description_vertical_gap}
         {
             for (auto&& option : other.list_)
             {
@@ -49,18 +70,25 @@ namespace cli
 
         options(options&& other) noexcept(
             std::is_nothrow_move_constructible_v<std::string> &&
-            std::is_nothrow_move_constructible_v<list> &&
-            std::is_nothrow_move_constructible_v<unordered_map>)
-                : description_   {std::move(other.description_)},
-                  list_          {std::move(other.list_)},
-                  unordered_map_ {std::move(other.unordered_map_)}
-        {}
+            std::is_nothrow_move_constructible_v<detail::list> &&
+            std::is_nothrow_move_constructible_v<detail::unordered_map>)
+                : description              {std::move(other.description)},
+                  description_left_indent  {other.description_left_indent},
+                  description_vertical_gap {other.description_vertical_gap},
+                  list_                    {std::move(other.list_)},
+                  unordered_map_           {std::move(other.unordered_map_)}
+        {
+            other.description_left_indent  = default_description_left_indent;
+            other.description_vertical_gap = default_description_vertical_gap;
+        }
 
         options& operator=(const options& other) noexcept
         {
             if (this != &other)
             {
-                description_ = other.description_;
+                description              = other.description;
+                description_left_indent  = other.description_left_indent;
+                description_vertical_gap = other.description_vertical_gap;
 
                 for (auto&& option : other.list_)
                 {
@@ -73,12 +101,19 @@ namespace cli
 
         options& operator=(options&& other) noexcept(
             std::is_nothrow_swappable_v<std::string> &&
-            std::is_nothrow_swappable_v<list> &&
-            std::is_nothrow_swappable_v<unordered_map>)
+            std::is_nothrow_swappable_v<detail::list> &&
+            std::is_nothrow_swappable_v<detail::unordered_map>)
         {
             if (this != &other)
             {
-                std::swap(description_,   other.description_);
+                std::swap(description, other.description);
+
+                std::swap(
+                    description_left_indent, other.description_left_indent);
+
+                std::swap(
+                    description_vertical_gap, other.description_vertical_gap);
+
                 std::swap(list_,          other.list_);
                 std::swap(unordered_map_, other.unordered_map_);
             }
@@ -101,16 +136,6 @@ namespace cli
             }
 
             return unordered_map_.contains(option_name);
-        }
-
-        std::string_view description() const noexcept
-        {
-            return description_;
-        }
-
-        void description(std::string_view description)
-        {
-            description_ = description;
         }
 
         constexpr bool empty() const noexcept
@@ -144,14 +169,10 @@ namespace cli
 
         friend std::ostream& operator<<(std::ostream&, const options&);
 
-        inline static constinit std::size_t left_indent  = 4;
-        inline static constinit std::size_t vertical_gap = 1;
-
     private:
 
-        std::string   description_;
-        list          list_;
-        unordered_map unordered_map_;
+        detail::list          list_;
+        detail::unordered_map unordered_map_;
     };
 
     std::ostream& operator<<(std::ostream&, const options&);

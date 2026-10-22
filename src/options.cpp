@@ -16,7 +16,7 @@
 
 void cli::options::add_option(const option& option)
 {
-    detail::verify(option);
+    cli::detail::verify(option);
 
     auto iterator_1 = unordered_map_.find(option.short_name);
     auto iterator_2 = unordered_map_.find(option.long_name);
@@ -51,11 +51,11 @@ void cli::options::add_option(const option& option)
 std::ostream& cli::operator<<(
     std::ostream& ostream, const options& options)
 {
-    if (not options.description_.empty())
+    if (not options.description.empty())
     {
-        ostream << options.description_
-                << std::string(options.vertical_gap, '\n')
-                << '\n';
+        const std::string vertical_gap(options.description_vertical_gap, '\n');
+
+        ostream << std::format("{}\n{}", options.description, vertical_gap);
     }
 
     const auto gap =
@@ -65,7 +65,7 @@ std::ostream& cli::operator<<(
         }
     )->long_name.size();
 
-    const auto left_indent = std::string(options.left_indent, ' ');
+    const std::string left_indent(options.description_left_indent, ' ');
 
     std::ranges::for_each(options.list_, [&](auto&& option)
     {

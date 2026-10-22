@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(default_constructor)
 {
     const cli::options options;
 
-    BOOST_TEST(options.description().empty());
+    BOOST_TEST(options.description.empty());
 
     BOOST_TEST(options.empty());
 
@@ -29,36 +29,37 @@ BOOST_AUTO_TEST_CASE(default_constructor)
     BOOST_TEST((options.begin() == options.end()));
 }
 
-BOOST_AUTO_TEST_CASE(initializer_list)
-{
-    const cli::options options {
-        cli::option {.short_name = "-h", .long_name  = "--help"}
-    };
-
-    BOOST_TEST(options.description().empty());
-
-    BOOST_TEST(not options.empty());
-
-    BOOST_CHECK_EQUAL(options.size(), 1);
-
-    BOOST_TEST((options.begin() != options.end()));
-}
-
 BOOST_AUTO_TEST_SUITE(parameterized_constructor);
 
-BOOST_AUTO_TEST_CASE(initialize_with_string)
+BOOST_AUTO_TEST_CASE(initialize_with_string_and_initializer_list)
 {
-    const cli::options options {"<project-name> options:"};
+    const cli::options options_1 {{}, {}};
 
-    BOOST_TEST(not options.description().empty());
+    BOOST_TEST(options_1.description.empty());
 
-    BOOST_TEST(options.empty());
+    BOOST_TEST(options_1.empty());
+
+    const cli::options options_2 {"<application-name> options:", {}};
+
+    BOOST_TEST(not options_2.description.empty());
+
+    const cli::options options_3 {
+        "<application-name> options:", {
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            }
+        }
+    };
+
+    BOOST_TEST(not options_3.empty());
 }
 
 BOOST_AUTO_TEST_CASE(initialize_with_option_does_not_contain_names)
 {
-    BOOST_CHECK_EXCEPTION(
-        cli::options {cli::option {}},
+    BOOST_CHECK_EXCEPTION((
+        cli::options {{}, {cli::option {}}}),
         std::runtime_error,
         [](auto&& exception)
         {
@@ -70,8 +71,8 @@ BOOST_AUTO_TEST_CASE(initialize_with_option_does_not_contain_names)
 
 BOOST_AUTO_TEST_CASE(initialize_with_option_containing_invalid_short_name)
 {
-    BOOST_CHECK_EXCEPTION(
-        cli::options {cli::option {.short_name = "h"}},
+    BOOST_CHECK_EXCEPTION((
+        cli::options {{}, {cli::option {.short_name = "h"}}}),
         std::runtime_error,
         [](auto&& exception)
         {
@@ -81,17 +82,10 @@ BOOST_AUTO_TEST_CASE(initialize_with_option_containing_invalid_short_name)
     );
 }
 
-BOOST_AUTO_TEST_CASE(initialize_with_option_containing_valid_short_name)
-{
-    const cli::options options {cli::option {.short_name = "-h"}};
-
-    BOOST_TEST(options.contains("-h"));
-}
-
 BOOST_AUTO_TEST_CASE(initialize_with_option_containing_invalid_long_name)
 {
-    BOOST_CHECK_EXCEPTION(
-        cli::options {cli::option {.long_name = "help"}},
+    BOOST_CHECK_EXCEPTION((
+        cli::options {{}, {cli::option {.long_name = "help"}}}),
         std::runtime_error,
         [](auto&& exception)
         {
@@ -102,17 +96,14 @@ BOOST_AUTO_TEST_CASE(initialize_with_option_containing_invalid_long_name)
     );
 }
 
-BOOST_AUTO_TEST_CASE(initialize_with_option_containing_valid_long_name)
-{
-    const cli::options options {cli::option {.long_name = "--help"}};
-
-    BOOST_TEST(options.contains("--help"));
-}
-
 BOOST_AUTO_TEST_CASE(initialize_with_option_containing_invalid_names)
 {
-    BOOST_CHECK_EXCEPTION(
-        (cli::options {cli::option {.short_name = "h", .long_name = "help"}}),
+    BOOST_CHECK_EXCEPTION((
+        cli::options {
+            {}, {
+                cli::option {.short_name = "h", .long_name = "help"}
+            }
+        }),
         std::runtime_error,
         [](auto&& exception)
         {
@@ -122,30 +113,38 @@ BOOST_AUTO_TEST_CASE(initialize_with_option_containing_invalid_names)
     );
 }
 
-BOOST_AUTO_TEST_CASE(initialize_with_option_containing_valid_names)
-{
-    const cli::options options {
-        cli::option {.short_name = "-h", .long_name = "--help"}
-    };
-
-    BOOST_TEST(options.contains("-h"));
-
-    BOOST_TEST(options.contains("--help"));
-
-    BOOST_CHECK_EQUAL(options.size(), 1);
-}
-
 BOOST_AUTO_TEST_SUITE_END(); // options/constructor/parameterized_constructor
 
 BOOST_AUTO_TEST_CASE(copy_constructor)
 {
-    const cli::options options_1 {
-        cli::option {.short_name = "-h", .long_name  = "--help"}
+    cli::options options_1 {
+        "<application-name> options:", {
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            }
+        }
     };
+
+    options_1.description_left_indent  = 8;
+    options_1.description_vertical_gap = 2;
 
     const auto options_2 {options_1};
 
+    BOOST_TEST(not options_1.description.empty());
+
+    BOOST_CHECK_EQUAL(options_1.description_left_indent, 8);
+
+    BOOST_CHECK_EQUAL(options_1.description_vertical_gap, 2);
+
     BOOST_TEST(not options_1.empty());
+
+    BOOST_TEST(not options_2.description.empty());
+
+    BOOST_CHECK_EQUAL(options_2.description_left_indent, 8);
+
+    BOOST_CHECK_EQUAL(options_2.description_vertical_gap, 2);
 
     BOOST_TEST(not options_2.empty());
 }
@@ -153,12 +152,39 @@ BOOST_AUTO_TEST_CASE(copy_constructor)
 BOOST_AUTO_TEST_CASE(move_constructor)
 {
     cli::options options_1 {
-        cli::option {.short_name = "-h", .long_name  = "--help"}
+        "<application-name>", {
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            }
+        }
     };
+
+    options_1.description_left_indent  = 8;
+    options_1.description_vertical_gap = 2;
 
     const auto options_2 {std::move(options_1)};
 
+    BOOST_TEST(options_1.description.empty());
+
+    BOOST_CHECK_EQUAL(
+        options_1.description_left_indent,
+        cli::options::default_description_left_indent
+    );
+
+    BOOST_CHECK_EQUAL(
+        options_1.description_vertical_gap,
+        cli::options::default_description_vertical_gap
+    );
+
     BOOST_TEST(options_1.empty());
+
+    BOOST_TEST(not options_2.description.empty());
+
+    BOOST_CHECK_EQUAL(options_2.description_left_indent, 8);
+
+    BOOST_CHECK_EQUAL(options_2.description_vertical_gap, 2);
 
     BOOST_TEST(not options_2.empty());
 }
@@ -169,7 +195,7 @@ BOOST_AUTO_TEST_SUITE(add_option);
 
 BOOST_AUTO_TEST_CASE(that_has_already_been_added)
 {
-    cli::options options_1 {cli::option {.short_name = "-h"}};
+    cli::options options_1 {{}, {cli::option {.short_name = "-h"}}};
 
     BOOST_CHECK_EXCEPTION(
         options_1.add_option(cli::option {"-h"}),
@@ -181,8 +207,8 @@ BOOST_AUTO_TEST_CASE(that_has_already_been_added)
         }
     );
 
-    BOOST_CHECK_EXCEPTION(
-        (options_1.add_option(
+    BOOST_CHECK_EXCEPTION((
+        options_1.add_option(
             cli::option {.short_name = "-h", .long_name = "--help"})),
         std::runtime_error,
         [](auto&& exception)
@@ -192,7 +218,7 @@ BOOST_AUTO_TEST_CASE(that_has_already_been_added)
         }
     );
 
-    cli::options options_2 {cli::option {.long_name = "--help"}};
+    cli::options options_2 {{}, {cli::option {.long_name = "--help"}}};
 
     BOOST_CHECK_EXCEPTION(
         options_2.add_option(cli::option {.long_name = "--help"}),
@@ -204,8 +230,8 @@ BOOST_AUTO_TEST_CASE(that_has_already_been_added)
         }
     );
 
-    BOOST_CHECK_EXCEPTION(
-        (options_2.add_option(
+    BOOST_CHECK_EXCEPTION((
+        options_2.add_option(
             cli::option {.short_name = "-h", .long_name = "--help"})),
         std::runtime_error,
         [](auto&& exception)
@@ -216,7 +242,12 @@ BOOST_AUTO_TEST_CASE(that_has_already_been_added)
     );
 
     cli::options options_3 {
-        cli::option {.short_name = "-h", .long_name = "--help"}
+        {}, {
+            cli::option {
+                .short_name = "-h",
+                .long_name  = "--help"
+            }
+        }
     };
 
     BOOST_CHECK_EXCEPTION(
@@ -229,8 +260,8 @@ BOOST_AUTO_TEST_CASE(that_has_already_been_added)
         }
     );
 
-    BOOST_CHECK_EXCEPTION(
-        (options_3.add_option(cli::option {.long_name = "--help"})),
+    BOOST_CHECK_EXCEPTION((
+        options_3.add_option(cli::option {.long_name = "--help"})),
         std::runtime_error,
         [](auto&& exception)
         {
@@ -239,8 +270,8 @@ BOOST_AUTO_TEST_CASE(that_has_already_been_added)
         }
     );
 
-    BOOST_CHECK_EXCEPTION(
-        (options_3.add_option(
+    BOOST_CHECK_EXCEPTION((
+        options_3.add_option(
             cli::option {.short_name = "-h", .long_name = "--help"})),
         std::runtime_error,
         [](auto&& exception)
@@ -258,7 +289,13 @@ BOOST_AUTO_TEST_SUITE(subscript_operator);
 BOOST_AUTO_TEST_CASE(access_to_unadded_option)
 {
     const cli::options options {
-        cli::option {.short_name = "-h", .long_name = "--help"}
+        "<application-name> options:", {
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            }
+        }
     };
 
     BOOST_REQUIRE_NO_THROW(options["-h"]);
@@ -279,55 +316,55 @@ BOOST_AUTO_TEST_SUITE(stream_insertion_operator);
 
 BOOST_AUTO_TEST_CASE(default_settings)
 {
-    cli::options options {
-        cli::option {
-            .short_name  = "-e",
-            .long_name   = "--edit",
-            .description = "edits files"
-        },
+    const cli::options options {
+        "<application-name> options:", {
+            cli::option {
+                .short_name  = "-e",
+                .long_name   = "--edit",
+                .description = "edits files"
+            },
 
-        cli::option {
-            .long_name   = "--no-edit",
-            .description = "doesn't edit files"
-        },
+            cli::option {
+                .long_name   = "--no-edit",
+                .description = "doesn't edit files"
+            },
 
-        cli::option {
-            .short_name  = "-f",
-            .long_name   = "--file",
-            .description = "add input file"
-        },
+            cli::option {
+                .short_name  = "-f",
+                .long_name   = "--file",
+                .description = "add input file"
+            },
 
-        cli::option {
-            .short_name  = "-h",
-            .long_name   = "--help",
-            .description = "displays a help message"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name  = "-t",
-            .description = "set a timer for replying"
-        },
+            cli::option {
+                .short_name  = "-t",
+                .description = "set a timer for replying"
+            },
 
-        cli::option {
-            .short_name  = "-v",
-            .long_name   = "--verbose",
-            .description = "enables verbose mode"
+            cli::option {
+                .short_name  = "-v",
+                .long_name   = "--verbose",
+                .description = "enables verbose mode"
+            }
         }
     };
-
-    options.description("general options:");
 
     std::ostringstream ostringstream;
 
     ostringstream << options;
 
     std::string_view output =
-        "general options:\n"
+        "<application-name> options:\n"
         "\n"
         "    -e, --edit    edits files\n"
         "        --no-edit doesn't edit files\n"
         "    -f, --file    add input file\n"
-        "    -h, --help    displays a help message\n"
+        "    -h, --help    print help message\n"
         "    -t            set a timer for replying\n"
         "    -v, --verbose enables verbose mode\n";
 
@@ -337,38 +374,40 @@ BOOST_AUTO_TEST_CASE(default_settings)
 BOOST_AUTO_TEST_CASE(no_description)
 {
     const cli::options options {
-        cli::option {
-            .short_name  = "-e",
-            .long_name   = "--edit",
-            .description = "edits files"
-        },
+        {}, {
+            cli::option {
+                .short_name  = "-e",
+                .long_name   = "--edit",
+                .description = "edits files"
+            },
 
-        cli::option {
-            .long_name   = "--no-edit",
-            .description = "doesn't edit files"
-        },
+            cli::option {
+                .long_name   = "--no-edit",
+                .description = "doesn't edit files"
+            },
 
-        cli::option {
-            .short_name  = "-f",
-            .long_name   = "--file",
-            .description = "add input file"
-        },
+            cli::option {
+                .short_name  = "-f",
+                .long_name   = "--file",
+                .description = "add input file"
+            },
 
-        cli::option {
-            .short_name  = "-h",
-            .long_name   = "--help",
-            .description = "displays a help message"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name  = "-t",
-            .description = "set a timer for replying"
-        },
+            cli::option {
+                .short_name  = "-t",
+                .description = "set a timer for replying"
+            },
 
-        cli::option {
-            .short_name  = "-v",
-            .long_name   = "--verbose",
-            .description = "enables verbose mode"
+            cli::option {
+                .short_name  = "-v",
+                .long_name   = "--verbose",
+                .description = "enables verbose mode"
+            }
         }
     };
 
@@ -380,7 +419,7 @@ BOOST_AUTO_TEST_CASE(no_description)
         "    -e, --edit    edits files\n"
         "        --no-edit doesn't edit files\n"
         "    -f, --file    add input file\n"
-        "    -h, --help    displays a help message\n"
+        "    -h, --help    print help message\n"
         "    -t            set a timer for replying\n"
         "    -v, --verbose enables verbose mode\n";
 
@@ -389,118 +428,115 @@ BOOST_AUTO_TEST_CASE(no_description)
 
 BOOST_AUTO_TEST_CASE(vertical_gap_is_zero)
 {
-    cli::options::vertical_gap = 0;
-
     cli::options options {
-        cli::option {
-            .short_name  = "-e",
-            .long_name   = "--edit",
-            .description = "edits files"
-        },
+        "<application-name> options:", {
+            cli::option {
+                .short_name  = "-e",
+                .long_name   = "--edit",
+                .description = "edits files"
+            },
 
-        cli::option {
-            .long_name   = "--no-edit",
-            .description = "doesn't edit files"
-        },
+            cli::option {
+                .long_name   = "--no-edit",
+                .description = "doesn't edit files"
+            },
 
-        cli::option {
-            .short_name  = "-f",
-            .long_name   = "--file",
-            .description = "add input file"
-        },
+            cli::option {
+                .short_name  = "-f",
+                .long_name   = "--file",
+                .description = "add input file"
+            },
 
-        cli::option {
-            .short_name  = "-h",
-            .long_name   = "--help",
-            .description = "displays a help message"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name  = "-t",
-            .description = "set a timer for replying"
-        },
+            cli::option {
+                .short_name  = "-t",
+                .description = "set a timer for replying"
+            },
 
-        cli::option {
-            .short_name  = "-v",
-            .long_name   = "--verbose",
-            .description = "enables verbose mode"
+            cli::option {
+                .short_name  = "-v",
+                .long_name   = "--verbose",
+                .description = "enables verbose mode"
+            }
         }
     };
 
-    options.description("general options:");
-
-    options.vertical_gap = 0;
+    options.description_vertical_gap = 0;
 
     std::ostringstream ostringstream;
 
     ostringstream << options;
 
     std::string_view output =
-        "general options:\n"
+        "<application-name> options:\n"
         "    -e, --edit    edits files\n"
         "        --no-edit doesn't edit files\n"
         "    -f, --file    add input file\n"
-        "    -h, --help    displays a help message\n"
+        "    -h, --help    print help message\n"
         "    -t            set a timer for replying\n"
         "    -v, --verbose enables verbose mode\n";
 
     BOOST_CHECK_EQUAL(ostringstream.view(), output);
 }
 
-BOOST_AUTO_TEST_CASE(left_indent_and_vertical_gap_are_zero)
+BOOST_AUTO_TEST_CASE(left_indent_is_zero)
 {
-    cli::options::left_indent = 0;
-
-    cli::options::vertical_gap = 0;
-
     cli::options options {
-        cli::option {
-            .short_name  = "-e",
-            .long_name   = "--edit",
-            .description = "edits files"
-        },
+        "<application-name> options:", {
+            cli::option {
+                .short_name  = "-e",
+                .long_name   = "--edit",
+                .description = "edits files"
+            },
 
-        cli::option {
-            .long_name   = "--no-edit",
-            .description = "doesn't edit files"
-        },
+            cli::option {
+                .long_name   = "--no-edit",
+                .description = "doesn't edit files"
+            },
 
-        cli::option {
-            .short_name  = "-f",
-            .long_name   = "--file",
-            .description = "add input file"
-        },
+            cli::option {
+                .short_name  = "-f",
+                .long_name   = "--file",
+                .description = "add input file"
+            },
 
-        cli::option {
-            .short_name  = "-h",
-            .long_name   = "--help",
-            .description = "displays a help message"
-        },
+            cli::option {
+                .short_name  = "-h",
+                .long_name   = "--help",
+                .description = "print help message"
+            },
 
-        cli::option {
-            .short_name  = "-t",
-            .description = "set a timer for replying"
-        },
+            cli::option {
+                .short_name  = "-t",
+                .description = "set a timer for replying"
+            },
 
-        cli::option {
-            .short_name  = "-v",
-            .long_name   = "--verbose",
-            .description = "enables verbose mode"
+            cli::option {
+                .short_name  = "-v",
+                .long_name   = "--verbose",
+                .description = "enables verbose mode"
+            }
         }
     };
 
-    options.description("general options:");
+    options.description_left_indent = 0;
 
     std::ostringstream ostringstream;
 
     ostringstream << options;
 
     std::string_view output =
-        "general options:\n"
+        "<application-name> options:\n"
+        "\n"
         "-e, --edit    edits files\n"
         "    --no-edit doesn't edit files\n"
         "-f, --file    add input file\n"
-        "-h, --help    displays a help message\n"
+        "-h, --help    print help message\n"
         "-t            set a timer for replying\n"
         "-v, --verbose enables verbose mode\n";
 
