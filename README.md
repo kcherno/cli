@@ -38,14 +38,15 @@ int main(int argc, char** argv)
 {
     try
     {
-        cli::options options {
-            cli::option {
-                .short_name  = "-h",
-                .long_name   = "--help"
+        const cli::options options {
+            "<application-name> options:", {
+                cli::option {
+                    .short_name  = "-h",
+                    .long_name   = "--help",
+                    .description = "print help message"
+                }
             }
         };
-
-        options.description("<application-name> options:");
 
         const auto& [parsed_options, positional_options] =
             cli::parser(options).parse_command_line(argc, argv);
@@ -87,35 +88,35 @@ int main(int argc, char** argv)
 {
     try
     {
-        cli::options options {
-            cli::option {
-                .short_name    = "-e",
-                .long_name     = "--edit",
-                .description   = "edit the file",
-                .has_arguments = true
-            },
+        const cli::options options {
+            "<application-name> options:", {
+                cli::option {
+                    .short_name    = "-e",
+                    .long_name     = "--edit",
+                    .description   = "edit the file",
+                    .has_arguments = true
+                },
 
-            cli::option {
-                .long_name     = "--no-edit",
-                .description   = "do not edit the file",
-                .has_arguments = true
-            },
+                cli::option {
+                    .long_name     = "--no-edit",
+                    .description   = "do not edit the file",
+                    .has_arguments = true
+                },
 
-            cli::option {
-                .short_name    = "-f",
-                .long_name     = "--file",
-                .description   = "add input file",
-                .has_arguments = true
-            },
+                cli::option {
+                    .short_name    = "-f",
+                    .long_name     = "--file",
+                    .description   = "add input file",
+                    .has_arguments = true
+                },
 
-            cli::option {
-                .short_name  = "-h",
-                .long_name   = "--help",
-                .description = "print help message"
+                cli::option {
+                    .short_name  = "-h",
+                    .long_name   = "--help",
+                    .description = "print help message"
+                }
             }
         };
-
-        options.description("<application-name> options:");
 
         const auto& [parsed_options, positional_options] =
             cli::parser(options).parse_command_line(argc, argv);
@@ -169,44 +170,43 @@ int main(int argc, char** argv)
             if (not std::filesystem::exists(filename))
             {
                 throw std::runtime_error {
-                    std::format("{} does not exist", filename)
+                    std::format("file '{}' does not exist", filename)
                 };
             }
         };
 
-        cli::options options {
-            cli::option {
-                .short_name        = "-e",
-                .long_name         = "--edit",
-                .description       = "edit the file",
-                .has_arguments     = true,
-                .argument_verifier = does_file_exist
-            },
+        const cli::options options {
+            "<application-name> options:", {
+                cli::option {
+                    .short_name        = "-e",
+                    .long_name         = "--edit",
+                    .description       = "edit the file",
+                    .has_arguments     = true,
+                    .argument_verifier = does_file_exist
+                },
 
-            cli::option {
-                .long_name         = "--no-edit",
-                .description       = "do not edit the file",
-                .has_arguments     = true,
-                .argument_verifier = does_file_exist
-            },
+                cli::option {
+                    .long_name         = "--no-edit",
+                    .description       = "do not edit the file",
+                    .has_arguments     = true,
+                    .argument_verifier = does_file_exist
+                },
 
-            cli::option {
-                .short_name        = "-f",
-                .long_name         = "--file",
-                .description       = "add input file",
-                .has_arguments     = true,
-                .argument_verifier = does_file_exist
-            },
+                cli::option {
+                    .short_name        = "-f",
+                    .long_name         = "--file",
+                    .description       = "add input file",
+                    .has_arguments     = true,
+                    .argument_verifier = does_file_exist
+                },
 
-            cli::option 
-            {
-                .short_name  = "-h",
-                .long_name   = "--help",
-                .description = "print help message"
+                cli::option  {
+                    .short_name  = "-h",
+                    .long_name   = "--help",
+                    .description = "print help message"
+                }
             }
         };
-
-        options.description("<application-name> options:");
 
         const auto& [parsed_options, positional_options] =
             cli::parser(options).parse_command_line(argc, argv);
@@ -256,70 +256,70 @@ int main(int argc, char** argv)
 {
     try
     {
-        cli::options options {
-            cli::option {
-                .short_name             = "-h",
-                .long_name              = "--help",
-                .description            = "print help message",
-                .has_arguments          = true,
-                .are_arguments_required = false,
-                .argument_verifier      = [](std::string_view argument)
-                {
-                    if (argument != "filesystem")
+        const cli::options options {
+            "<application-name> options:", {
+                cli::option {
+                    .short_name             = "-h",
+                    .long_name              = "--help",
+                    .description            = "print help message",
+                    .has_arguments          = true,
+                    .are_arguments_required = false,
+                    .argument_verifier      = [](std::string_view argument)
                     {
-                        throw std::runtime_error {
-                            std::format(
-                                "the {} is an invalid option group name\n"
-                                "\n"
-                                "list of options group:\n"
-                                "\n"
-                                "filesystem: working with files",
-                                argument
-                            )
-                        };
-                    }    
+                        if (argument != "filesystem")
+                        {
+                            throw std::runtime_error {
+                                std::format(
+                                    "'{}' is an invalid option group name\n"
+                                    "\n"
+                                    "list of options group:\n"
+                                    "\n"
+                                    "filesystem: working with files",
+                                    argument
+                                )
+                            };
+                        }
+                    }
                 }
             }
         };
-
-        options.description("<appication-name> options:");
 
         constexpr auto does_file_exist = [](std::string_view filename)
         {
             if (not std::filesystem::exists(filename))
             {
                 throw std::runtime_error {
-                    std::format("{} file does not exist", filename)
+                    std::format("file '{}' does not exist", filename)
                 };
             }
         };
 
-        cli::options filesystem_options {
-            cli::option {
-                .short_name        = "-e",
-                .long_name         = "--edit",
-                .description       = "edit the file",
-                .has_arguments     = true,
-                .argument_verifier = does_file_exist
-            },
+        const cli::options filesystem_options {
+            "filesystem otpions:", {
+                cli::option {
+                    .short_name        = "-e",
+                    .long_name         = "--edit",
+                    .description       = "edit the file",
+                    .has_arguments     = true,
+                    .argument_verifier = does_file_exist
+                },
 
-            cli::option {
-                .long_name         = "--no-edit",
-                .description       = "do not edit the file",
-                .has_arguments     = true,
-                .argument_verifier = does_file_exist
-            },
+                cli::option {
+                    .long_name         = "--no-edit",
+                    .description       = "do not edit the file",
+                    .has_arguments     = true,
+                    .argument_verifier = does_file_exist
+                },
 
-            cli::option {
-                .short_name        = "-f",
-                .long_name         = "--file",
-                .description       = "add input file",
-                .has_arguments     = true,
-                .argument_verifier = does_file_exist
+                cli::option {
+                    .short_name        = "-f",
+                    .long_name         = "--file",
+                    .description       = "add input file",
+                    .has_arguments     = true,
+                    .argument_verifier = does_file_exist
+                }
             }
         };
-
-        filesystem_options.description("filesystem options:");
 
         const auto& [parsed_options, positional_options] =
             cli::parser({options, filesystem_options})
@@ -491,13 +491,13 @@ Specifies the number of new lines when outputting options after the header.
 By default, sets the number of spaces on the left when outputting options.
 
 ```c++
-    `static constexpr unsigned int` default_description_left_indent = 4;
+    static constexpr unsigned int default_description_left_indent = 4;
 ```
 
 By default, sets the number of new lines after the description when outputting options.
 
 ```c++
-    `static constexpr unsigned int` default_description_vertical_gap = 1;
+    static constexpr unsigned int default_description_vertical_gap = 1;
 ```
 
 #### member functions
